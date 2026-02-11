@@ -1,0 +1,235 @@
+---
+import { Image } from 'astro:assets'
+import { Button, Card, Icon, Label } from '@/components/user'
+import SkillLayout from '@/components/home/SkillLayout.astro'
+// import GitHubActivityCalendar from '@/components/home/GitHubActivityCalendar.astro'
+import PageLayout from '@/layouts/BaseLayout.astro'
+import Section from '@/components/home/Section.astro'
+import BlogStats from '@/components/home/BlogStats.astro'
+import avatar from '@/assets/home.png'
+import config from '@/site-config'
+import { getBlogCollectionEn, sortMDByDate } from 'src/utils/server.ts'
+import PostPreview from '@/components/pages/PostPreview.astro'
+import Quote from '@/components/advanced/Quote.astro'
+import ProjectCard from '@/components/home/ProjectCard.astro'
+
+
+const languages = ['C++','C#', 'Shaderlab', 'HLSL', 'GLSL']
+const frontend = ['TypeScript', 'Astro']
+const backend = ['Vercel', 'Waline']
+const middleware = ['Unity', 'Unreal Engine']
+
+const MAX_POSTS = 10
+const allPosts = await getBlogCollectionEn()
+const enPosts = allPosts.filter(post => post.data.language === 'en')
+const allPostsByDate = sortMDByDate(enPosts).slice(0, MAX_POSTS)
+
+---
+
+<PageLayout meta={{ title: 'Home' }} highlightColor='#a7fcf4'>
+  <main class='flex w-full flex-col items-center'>
+    <section class='animate mb-10 flex flex-col items-center gap-y-7' id='content-header'>
+      <Image
+        src={avatar}
+        alt='profile'
+        class='h-36 w-36 object-cover rounded-full border p-1'
+        loading='eager'
+      />
+
+      <div class='flex flex-col items-center gap-y-4'>
+        <h1 class='text-3xl font-medium'>{config.author}</h1>
+        <div class='flex flex-wrap justify-center gap-x-7 gap-y-3'>
+          <Label title='Beijing · China'>
+            <Icon name='location' class='size-5' slot='icon' />
+          </Label>
+          <Label
+            title='Github'
+            as='a'
+            href='https://github.com/LewisZhao97'
+            target='_blank'
+          >
+            <Icon name='github' class='size-5' slot='icon' />
+          </Label>
+          <Label
+            title='Email'
+            as='a'
+            href='mailto:lewisphotograph@gmail.com'
+            target='_blank'
+          >
+            <Icon name='email' class='size-5' slot='icon' />
+          </Label>
+          <Label
+            title='Bilibili'
+            as='a'
+            href='https://space.bilibili.com/108877865'
+            target='_blank'
+          >
+            <Icon name='bilibili' class='size-5' slot='icon' />
+          </Label>
+          <Label
+            title='Zhihu'
+            as='a'
+            href='https://www.zhihu.com/people/eco-63'
+            target='_blank'
+          >
+            <Icon name='zhihu' class='size-5' slot='icon' />
+          </Label>
+        </div>
+      </div>
+
+      <!--{/* Get template */}-->
+      <!--<a-->
+      <!--  href='https://github.com/cworld1/astro-theme-pure'-->
+      <!--  target='_blank'-->
+      <!--  class='flex flex-row items-center gap-x-3 rounded-full border bg-background px-4 py-2 text-sm shadow-sm transition-shadow hover:shadow-md'-->
+      <!--&gt;-->
+      <!--  <span class='relative flex items-center justify-center'>-->
+      <!--    <span-->
+      <!--      class='absolute size-2 animate-ping rounded-full border border-green-400 bg-green-400 opacity-75'-->
+      <!--    ></span>-->
+      <!--    <span class='size-2 rounded-full bg-green-400'></span>-->
+      <!--  </span>-->
+      <!--  <p class='font-medium text-muted-foreground'>Get Template</p>-->
+      <!--</a>-->
+    </section>
+
+    <div id='content' class='animate flex flex-col gap-y-10 md:w-4/5 lg:w-5/6'>
+      <Section title='About'>
+        <p class='text-muted-foreground'>Game Engine Developer / Technical Artist</p>
+        <p class='text-muted-foreground'>
+          Obsessed with every pixel of a game engine. Passionate about developing editor tools to unleash productivity, using code as a pen to explore the infinite boundaries of technology and vision in the world of XR.
+        </p>
+        <Button title='More about me' class='w-fit self-end' href='/about' variant='ahead' />
+      </Section>
+      {
+        allPostsByDate.length > 0 && (
+          <Section title='Posts'>
+            <ul class='flex flex-col gap-y-1.5 sm:gap-y-2'>
+              {allPostsByDate.map((p) => (
+                <li class='flex flex-col gap-x-2 sm:flex-row'>
+                  <PostPreview post={p} />
+                </li>
+              ))}
+            </ul>
+            <Button title='More posts' class='w-fit self-end' href='/blog' variant='ahead' />
+          </Section>
+
+          <Section title='Statistics'>
+            <BlogStats blogStartDate={config.personal?.blogStartDate ? new Date(config.personal.blogStartDate) : new Date('2026-01-02')} />
+          </Section>
+        )
+      }
+
+      {
+        /* <Section title='Experience'>
+      <Card
+        heading='Lorem Ipsum'
+        subheading='Sit amet consectetur'
+        date='Dec 2022 - Nov 2023'
+        imagePath='/src/assets/about-astro.png'
+        altText='Lorem, ipsum dolor sit'
+        imageClass='h-12 w-auto md:-start-16'
+      >
+        <ul class='ms-4 list-disc text-muted-foreground'>
+          <li>
+            Lorem, ipsum dolor sit amet consectetur adipisicing elit. Dolore debitis recusandae, ut
+            molestiae laboriosam pariatur!
+
+            <li>Lorem ipsum dolor sit amet consectetur adipisicing elit. Molestiae, pariatur!</li>
+          </li>
+        </ul>
+      </Card>
+      <Card
+        heading='Lorem Ipsum'
+        subheading='Sit amet consectetur'
+        date='Dec 2022 - Nov 2023'
+        imagePath='/src/assets/about-astro.png'
+        altText='Lorem, ipsum dolor sit'
+        imageClass='h-12 w-auto md:-start-16'
+      />
+    </Section> */
+      }
+      <Section title='Resume'>
+        <Card
+          as='a'
+          heading='Viture'
+          subheading='XR Technical Artist'
+          date='Sep 2025 - Present'
+          href=''
+        >
+        </Card>
+        <Card
+          as='a'
+          heading='LandMark'
+          subheading='Unity Artist'
+          date='Dec 2022 - Sep 2025'
+          href=''
+        >
+        </Card>
+        <Card
+          as='a'
+          heading='Pratt Institute'
+          subheading='3D Animation and Motion Art  Grad'
+          date='Jun 2019 - Jun 2022'
+          href=''
+        >
+        </Card>
+        <Card
+          as='a'
+          heading='Hainan University'
+          subheading='Landscape Architecture  Undergrad'
+          date='Sep 2014 - Jun 2018'
+          href=''
+        >
+          {
+            /* <ul class='ms-4 list-disc text-muted-foreground'>
+          <li>
+            Lorem, ipsum dolor sit amet consectetur adipisicing elit. Dolore debitis recusandae, ut
+            molestiae laboriosam pariatur!
+          </li>
+          <li>Lorem ipsum dolor sit amet consectetur adipisicing elit. Molestiae, pariatur!</li>
+        </ul> */
+          }
+        </Card>
+      </Section>
+
+      <Section title='Website List'>
+        <div class='grid grid-cols-1 gap-3 sm:grid-cols-2'>
+          <ProjectCard
+            href='https://www.youtube.com/watch?v=dQw4w9WgXcQ'
+            heading='Lorem ipsum'
+            subheading='Do not go gentle into that good night'
+            imagePath='/src/assets/projects/byddl.webp'
+          />
+          <ProjectCard
+            href='https://www.youtube.com/watch?v=dQw4w9WgXcQ'
+            heading='Lorem ipsum'
+            subheading='Old age burn and rave at close of day'
+            imagePath='/src/assets/projects/byddl.webp'
+          />
+          <ProjectCard
+            href='https://www.youtube.com/watch?v=dQw4w9WgXcQ'
+            heading='Lorem ipsum'
+            subheading='Rage, rage against the dying of the light'
+            imagePath='/src/assets/projects/byddl.webp'
+          />
+          <ProjectCard
+            href='/projects'
+            heading='More projects'
+            subheading='Check out more projects'
+            imagePath='/src/assets/projects/byddl.webp'
+          />
+        </div>
+      </Section>
+
+      <Section title='Skills'>
+        <SkillLayout title='Languages' skills={languages} />
+        <SkillLayout title='Frontend' skills={frontend} />
+        <SkillLayout title='Backend' skills={backend} />
+        <SkillLayout title='MiddleWares' skills={middleware} />
+      </Section>
+    </div>
+    <Quote class='mt-12' />
+  </main>
+</PageLayout>
+

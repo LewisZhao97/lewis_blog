@@ -1,0 +1,130 @@
+---
+import type { GetStaticPaths, Page } from 'astro'
+import type { CollectionEntry } from 'astro:content'
+
+import { Paginator, PostPreview, CollectionPreview } from '@/components/pages'
+import { getBlogCollection, getUniqueTags, sortMDByDate, getPostCollections } from '@/server'
+import { Button, Icon } from '@/components/user'
+import PageLayout from '@/layouts/BaseLayout.astro'
+import config from '@/site-config'
+
+export const prerender = true
+
+// --- 改动 1: 简化的路由生成逻辑 ---
+export const getStaticPaths = (async ({ paginate }) => {
+  // 获取所有博客文章
+  const allCollections = await getBlogCollection()
+  // 按日期排序
+  const allPosts = sortMDByDate(allCollections)
+  // 获取所有文章的唯一标签（用于侧边栏）
+  const uniqueTags = getUniqueTags(allPosts)
+  const collectionsCount = allPosts.length
+
+  // 直接对所有文章进行分页，不再通过 category 嵌套
+  return paginate(allPosts, {
+    pageSize: config.content?.blogPageSize || 8,
+    props: { uniqueTags, collectionsCount }
+  })
+}) satisfies GetStaticPaths
+
+interface Props {
+  page: Page<CollectionEntry<'blog'>>
+  uniqueTags: string[]
+  collectionsCount: number
+}
+
+const { page, uniqueTags, collectionsCount } = Astro.props
+
+const postCollections = await getPostCollections()
+
+const meta = {
+  description: 'All blog posts',
+  title: 'Blog'
+}
+---
+
+<PageLayout {meta}>
+  <main class='mt-6 lg:mt-10'>
+
+    {/* --- 改动 2: 简化的顶部标题 (去掉了分类导航箭头) --- */}
+    <div id='content-header' class='animate'>
+      <div class='mb-6 mt-6 sm:mt-10'>
+        <h1 class='inline-block text-3xl font-medium'>Blog</h1>
+      </div>
+    </div>
+
+    {
+      page.data.length === 0 ? (
+        <p>No posts yet.</p>
+      ) : (
+        <div class='grid gap-y-16 sm:grid-cols-[3fr_1fr] sm:gap-x-8'>
+          <section aria-label='Blog posts list' class='animate' id='content'>
+            {/* header: 显示页码信息 */}
+            <div class='mb-3 flex flex-col justify-between text-sm sm:mb-5 sm:flex-row'>
+              <span class='text-muted-foreground'>
+                Page {page.currentPage} - Showing {page.data.length} of {collectionsCount} posts
+              </span>
+              <a aria-label='View all blog by years' href='/archives' data-astro-prefetch>
+                View all posts by years →
+              </a>
+            </div>
+
+            {/* posts: 文章列表 */}
+            <ul class='flex flex-col gap-y-4 text-start'>
+              {page.data.map((post) => (
+                <PostPreview {post} detailed />
+              ))}
+            </ul>
+
+            {/* 分页器 */}
+            <Paginator currentPage={page.currentPage} lastPage={page.lastPage} url={page.url} />
+          </section>
+
+          {/* sidebar: 侧边栏 (保持不变，但现在显示全局 Tag) */}
+          {(!!uniqueTags.length || !!postCollections.length) && (
+            <aside class='animate' id='sidebar'>
+              {!!postCollections.length && (
+                <div class='mb-8'>
+                  <h2 class='mb-4 flex items-center text-lg font-semibold'>
+                    <Icon name='package' class='me-2' />
+                    Collections
+                  </h2>
+                  <ul class='flex flex-col gap-2'>
+                    {postCollections.slice(0, 5).map((collection) => (
+                      <CollectionPreview {collection} minimal />
+                    ))}
+                  </ul>
+                  <span class='mt-4 block sm:text-end'>
+                      <a aria-label='View all collections' href='/collection' data-astro-prefetch>
+                      View all →
+                      </a>
+                  </span>
+                </div>
+              )}
+              {!!uniqueTags.length && (
+                <div>
+                  <h2 class='mb-4 flex items-center text-lg font-semibold'>
+                    <Icon name='tag-2' class='me-2' />
+                    Tags
+                  </h2>
+                  <ul class='text-bgColor flex flex-wrap gap-2'>
+                    {uniqueTags.map((tag) => (
+                      <li>
+                        <Button title={tag} href={`/tags/${tag}`} style='pill' />
+                      </li>
+                    ))}
+                  </ul>
+                  <span class='mt-4 block sm:text-end'>
+                    <a aria-label='View all blog categories' href='/tags' data-astro-prefetch>
+                      View all →
+                    </a>
+                  </span>
+                </div>
+              )}
+            </aside>
+          )}
+        </div>
+      )
+    }
+  </main>
+</PageLayout>

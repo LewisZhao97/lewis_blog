@@ -1,0 +1,248 @@
+---
+title: Markdown语法的文章编写指南
+publishDate: 2026-01-20
+description: 本文介绍了Markdown语法的基本使用方法，以及如何使用Markdown语法进行博客文章的编写。
+heroImage: {src : "https://cloudflare-imgbed-2dl.pages.dev/file/posts/138613692_image.png", inferSize: true, color: '#4F504C'}
+tags:
+  - Markdown
+  - Blogging
+language: zh
+heroImageLink: "https://www.pixiv.net/artworks/138613692"
+---
+import { GithubCard } from 'src/components/advanced/'
+
+# 原文链接
+
+<GithubCard repo="emn178/markdown" />
+
+# Markdown Tutorial
+
+A markdown example shows how to write a markdown file. This document integrates core syntax and extensions (GFM).
+
+- [Block Elements](#block-elements)
+- [Span Elements](#span-elements)
+- [Miscellaneous](#miscellaneous)
+- [Inline HTML](#inline-html)
+
+---
+
+## Block Elements
+
+### Paragraphs and Line Breaks
+
+#### Paragraphs
+
+HTML Tag: `<p>`
+
+One or more blank lines.
+
+```text
+This will be
+inline.
+
+This is second paragraph.
+```
+
+---
+
+This will be
+inline.
+
+This is second paragraph.
+
+---
+
+#### Line Breaks
+
+HTML Tag: `<br />`
+
+End a line with **two or more spaces**.
+
+```text
+This will be not
+inline.
+```
+
+---
+
+### Headers
+
+#### Setext
+
+```text
+This is an H1
+=============
+
+This is an H2
+-------------
+```
+
+---
+
+# This is an H1
+
+## This is an H2
+
+---
+
+#### atx
+
+```text
+# This is an H1
+## This is an H2
+###### This is an H6
+```
+
+---
+
+### Blockquotes
+
+```text
+> This is a blockquote.
+>
+> > Nested blockquote
+```
+
+---
+
+> This is a blockquote.
+>
+> > Nested blockquote
+
+---
+
+### Lists
+
+#### Unordered
+
+```text
+- Red
+- Green
+- Blue
+```
+
+---
+
+#### Ordered
+
+```text
+1. Bird
+2. McHale
+3. Parish
+```
+
+---
+
+### Code Blocks
+
+```text
+This is a normal paragraph:
+
+    This is a code block.
+```
+
+---
+
+#### Fenced Code Blocks
+
+```js
+function test() {
+  console.log("Hello MDX");
+}
+```
+
+---
+
+#### Syntax Highlighting
+
+```ruby
+require 'redcarpet'
+markdown = Redcarpet.new("Hello World!")
+puts markdown.to_html
+```
+
+---
+
+### Horizontal Rules
+
+```text
+---
+***
+___
+```
+
+---
+
+### Table
+
+```md
+| Left | Center | Right |
+|:-----|:------:|------:|
+| aaa  |  bbb   |   ccc |
+```
+
+---
+
+## Span Elements
+
+### Links
+
+```md
+[Example](https://example.com "Title")
+```
+
+---
+
+### Emphasis
+
+```md
+*italic*
+**bold**
+~~strikethrough~~
+```
+
+---
+
+### Code
+
+```md
+Use the `printf()` function.
+```
+
+---
+
+### Images
+
+```md
+![Alt text](https://s2.loli.net/2024/08/20/5fszgXeOxmL3Wdv.webp)
+```
+
+---
+
+## Miscellaneous
+
+### Automatic Links
+
+```text
+https://github.com/emn178/markdown
+```
+
+---
+
+### Backslash Escapes
+
+```text
+\*literal asterisks\*
+```
+
+---
+
+## Inline HTML
+
+```html
+<span>**Work**</span>
+
+<div>
+  **No Work**
+</div>
+```

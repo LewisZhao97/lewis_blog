@@ -1,0 +1,272 @@
+﻿---
+title: Commonly used basic lighting models for graphics rendering
+publishDate: 2026-01-22
+description: This article briefly describes the basic lighting models in graphics rendering, covering the core principles and differences between Lambert, Half-Lambert, Phong, and Blinn-Phong.
+heroImage: {src : "https://cloudflare-imgbed-2dl.pages.dev/file/posts/135536751_image.png", inferSize: true, color: '#4F504C'}
+tags:
+  - Shading
+  - Rendering
+  - Unity
+language: en
+heroImageLink: "https://www.pixiv.net/artworks/135536751"
+---
+
+# 基础光照模型 (Basic Illumination Models)
+
+在计算机图形学中，光照模型（Illumination Model）用于模拟光线与物体表面的交互，以计算像素的最终颜色。最基础的模型通常分为**漫反射 (Diffuse)** 和 **高光反射 (Specular)** 两部分。
+
+为了方便描述，我们在下文中统一定义以下向量（均假设为单位向量）：
+
+- $N$: 表面法线 (Normal)
+
+- $L$: 指向光源的向量 (Light Direction)
+
+- $V$: 指向观察者/相机的向量 (View Direction)
+
+- $R$: 光线的反射向量 (Reflection Vector)
+
+- $H$: 半程向量 (Halfway Vector)
+
+
+---
+
+## 1. Lambert 模型 (Lambertian Reflectance)
+
+### 简介
+
+Lambert 是最理想的漫反射模型。它假设表面是完全粗糙的，光线均匀地向所有方向散射。因此，无论观察者的视角在哪里，看到的亮度都是一样的，亮度仅取决于光线入射角度。
+
+### 定义与公式
+
+根据 **兰伯特余弦定律 (Lambert's Cosine Law)**，反射光强与表面法线和入射光向量之间夹角的余弦值成正比。
+
+$$
+I_{diffuse} = K_d \cdot I_{light} \cdot \max(N \cdot L, 0)
+$$
+
+- $K_d$: 材质的漫反射颜色
+
+- $I_{light}$: 光源强度/颜色
+
+- $N \cdot L$: 向量点积，等同于 $\cos(\theta)$
+
+
+### 着色器实现
+
+OpenGL Shading Language
+
+```glsl
+vec3 CalculateLambert(vec3 normal, vec3 lightDir, vec3 lightColor, vec3 albedo)
+{
+    // 点积结果为[-1.0, 1.0]，使用 max(0.0) 钳制，避免负颜色
+    float NdotL = max(dot(normal, lightDir), 0.0);
+
+    return albedo * lightColor * NdotL;
+}
+```
+High Level Shading Language
+
+```hlsl
+float3 CalculateLambert(float3 normal, float3 lightDir, float3 lightColor, float3 albedo)
+{
+    float NdotL = max(dot(normal, lightDir), 0.0);
+
+    return albedo * lightColor * NdotL;
+}
+```
+---
+
+## 2. Half-Lambert 模型
+
+### 简介
+
+Half-Lambert 是由 Valve 公司在开发《半条命2 (Half-Life 2)》时提出的一种非物理技巧。
+
+在标准的 Lambert 模型中，背光面（$N \cdot L \le 0$）完全是黑色的，导致阴影部分丢失细节且显得生硬。Half-Lambert 通过改变映射区间，让背光面也有微弱的亮度，从而使光照过渡更加柔和。
+
+### 定义与公式
+
+它将点积结果从 $[-1, 1]$ 的区间映射到 $[0, 1]$ 的区间，通常系数为 $0.5$。
+
+$$
+I_{half} = (\alpha \cdot (N \cdot L) + \beta)^\gamma
+$$
+
+通常取 $\alpha=0.5, \beta=0.5, \gamma=1$ (或者 $\gamma=2$ 用于增加对比度)。
+
+$$
+Factor = 0.5 \cdot (N \cdot L) + 0.5
+$$
+
+$$
+I_{diffuse} = K_d \cdot I_{light} \cdot Factor
+$$
+
+### 着色器实现
+
+OpenGL Shading Language
+
+```glsl
+vec3 CalculateHalfLambert(vec3 normal, vec3 lightDir, vec3 lightColor, vec3 albedo)
+{
+    // 将区间 [-1, 1] 映射到 [0, 1]
+    float NdotL = dot(normal, lightDir);
+    float halfLambert = NdotL * 0.5 + 0.5;
+
+    // *重要*：平方以调整光照衰减曲线，使其更有层次感
+    // halfLambert = pow(halfLambert, 2.0);
+
+    return albedo * lightColor * halfLambert;
+}
+```
+High Level Shading Language
+
+```hlsl
+float3 CalculateHalfLambert(float3 normal, float3 lightDir, float3 lightColor, float3 albedo)
+{
+    float NdotL = dot(normal, lightDir);
+    float halfLambert = NdotL * 0.5 + 0.5;
+
+    // halfLambert = pow(halfLambert, 2.0);
+
+    return albedo * lightColor * halfLambert;
+}
+```
+
+---
+
+## 3. Phong 模型 (Specular Reflection)
+
+### 简介
+
+Phong 模型在漫反射的基础上增加了**高光 (Specular)** 分量。它模拟光滑表面反射光线的效果。Phong 认为高光最强的地方，是观察方向 ($V$) 与光线反射方向 ($R$) 对齐的地方。
+
+### 定义与公式
+
+需要先计算光线关于法线的反射向量 $R$。
+
+$$
+R = \text{reflect}(-L, N) = 2(N \cdot L)N - L
+$$
+
+高光强度取决于 $R$ 和 $V$ 的夹角以及材质的**反光度 (Shininess)**。
+
+$$
+I_{specular} = K_s \cdot I_{light} \cdot \max(R \cdot V, 0)^{\alpha}
+$$
+
+- $K_s$: 材质的高光颜色
+
+- $R \cdot V$: 反射向量与视线向量的点积
+
+- $\alpha$: 反光度 (Shininess)，值越大，光斑越小越锐利。
+
+
+### 着色器实现
+
+OpenGL Shading Language
+
+```glsl
+vec3 CalculatePhong(vec3 normal, vec3 lightDir, vec3 viewDir, vec3 lightColor, float shininess)
+{
+    // 注意：reflect函数通常要求入射光是指向表面的，所以这里用 -lightDir
+    vec3 reflectDir = reflect(-lightDir, normal);
+
+    float spec = pow(max(dot(viewDir, reflectDir), 0.0), shininess);
+
+    return lightColor * spec; // 通常还要乘上高光贴图颜色
+}
+```
+High Level Shading Language
+
+```hlsl
+float3 CalculatePhong(float3 normal, float3 lightDir, float3 viewDir, float3 lightColor, float shininess)
+{
+    vec3 reflectDir = reflect(-lightDir, normal);
+
+    float spec = pow(max(dot(viewDir, reflectDir), 0.0), shininess);
+
+    return lightColor * spec;
+}
+```
+
+---
+
+## 4. Blinn-Phong 模型
+
+### 简介
+
+Blinn-Phong 是 Phong 模型的改良版，曾是 OpenGL 和 DirectX 固定管线的默认光照模型。
+
+Phong 模型在计算反射向量 $R$ 时开销较大，且当 $R$ 和 $V$ 夹角大于 90 度时会出现光照断层。Blinn-Phong 引入了**半程向量 (Halfway Vector)** 概念，计算更快，且高光过渡更自然。
+
+### 定义与公式
+
+半程向量 $H$ 是光照方向 $L$ 和视线方向 $V$ 的中间单位向量。
+
+$$
+H = \frac{L + V}{||L + V||}
+$$
+
+Blinn-Phong 比较的是法线 $N$ 与半程向量 $H$ 的重合程度。
+
+$$
+I_{specular} = K_s \cdot I_{light} \cdot \max(N \cdot H, 0)^{\alpha}
+$$
+
+:::note
+要达到与 Phong 相似的视觉效果，Blinn-Phong 的 Shininess 通常要是 Phong 的 2-4 倍。
+:::
+
+### 着色器实现
+
+OpenGL Shading Language
+
+```glsl
+vec3 CalculateBlinnPhong(vec3 normal, vec3 lightDir, vec3 viewDir, vec3 lightColor, float shininess)
+{
+    vec3 halfwayDir = normalize(lightDir + viewDir);
+
+    float spec = pow(max(dot(normal, halfwayDir), 0.0), shininess);
+
+    return lightColor * spec;
+}
+```
+High Level Shading Language
+
+```hlsl
+float3 CalculateBlinnPhong(float3 normal, float3 lightDir, float3 viewDir, float3 lightColor, float shininess)
+{
+    float3 halfwayDir = normalize(lightDir + viewDir);
+
+    float spec = pow(max(dot(normal, halfwayDir), 0.0), shininess);
+
+    return lightColor * spec;
+}
+```
+
+---
+
+## 总结
+
+| **模型**           | **主要用途**  | **核心计算**              |
+| ---------------- | --------- | --------------------- |
+| **Lambert**      | 漫反射       | `dot(N, L)`           |
+| **Half-Lambert** | 漫反射 (风格化) | `dot(N, L)*0.5 + 0.5` |
+| **Phong**        | 高光反射      | `dot(R, V)`           |
+| **Blinn-Phong**  | 高光反射      | `dot(N, H)`           |
+
+### 完整光照合成
+
+在实际应用中，最终颜色通常是上述分量的组合：
+
+$$
+FinalColor = Ambient + Diffuse (Lambert) + Specular (BlinnPhong)
+$$
+---
+## 参考
+
+- [LearnOpenGL - Basic Lighting (Phong)](https://learnopengl.com/Lighting/Basic-Lighting)
+- [LearnOpenGL - Advanced Lighting (Blinn-Phong)](https://learnopengl.com/Advanced-Lighting/Advanced-Lighting)
+- [Valve Developer Community - Half Lambert](https://developer.valvesoftware.com/wiki/Half_Lambert)
+- [Scratchapixel - Introduction to Shading](https://www.scratchapixel.com/lessons/3d-basic-rendering/introduction-to-shading/ligth-and-shadows.html)
