@@ -4,39 +4,63 @@ import { Image } from 'astro:assets'
 import PageLayout from '@/layouts/CommonPage.astro'
 import ProjectSection from '@/components/projects/ProjectSection.astro'
 import Sponsors from '@/components/projects/Sponsors.astro'
-import alipay from '@/assets/alipay-qrcode.jpg'
-import wechat from '@/assets/wechat-qrcode.jpg'
+import alipay from '@/assets/alipay-qrcode.jpeg'
+import wechat from '@/assets/wechatpay-qrcode.jpeg'
 import config from '@/site-config'
 
 import { Button, Icon } from '@/components/user'
 import type { iconsType } from '@/types'
 
 const headings = [
-  { depth: 2, slug: 'projects', text: 'Projects' },
+  { depth: 2, slug: 'web', text: 'Web' },
+  { depth: 2, slug: 'graphics', text: 'Graphics' },
   { depth: 2, slug: 'sponsorship', text: 'Sponsorship' }
 ]
 ---
 
-<PageLayout title='Projects' {headings} info={{ slug: '/projects', hideComment: true }}>
+<PageLayout title='Projects' {headings} view>
+  <p>Github Activities:</p>
   <p>
-    If you find my projects helpful or interesting, consider sponsoring me to keep me motivated.
+    <Image
+      src='https://ghchart.rshah.org/LewisZhao97'
+      alt='github activities'
+      inferSize
+      loading='lazy'
+    />
   </p>
+  <p>If you find my projects helpful or interesting, consider sponsoring me to keep me motivated.</p>
   <Button title='Checkout sponsorship' class='w-fit' href='#sponsorship'>
     <Icon class='size-5' name='receive-money' slot='before' />
   </Button>
 
-  <h2 id='projects'>Projects</h2>
+  <h2 id='web' class='mb-8 text-2xl font-semibold'>Web</h2>
   <ProjectSection
     project={[
       {
-        name: 'Project 1',
-        description: 'Project description 1. You can introduce the main features here.',
+        name: 'Lewis Blog',
+        description:
+          ' 一个基于Astro框架，Pure主题的现代化静态博客，主要记录作为TA技术美术的道路上所学习的技能与分享。 ',
         image: 'lumina.webp',
         links: [{ type: 'site', href: '#' }]
+      }
+    ]}
+  />
+
+  <h2 id='graphics' class='mb-8 text-2xl font-semibold'>Graphics</h2>
+  <ProjectSection
+    project={[
+      {
+        name: 'Unity Goose Render Pipeline',
+        description: '基于Unity Universal Render Pipeline的自定义卡通渲染管线。',
+        image: 'byddl.webp',
+        links: [
+          { type: 'site', href: '#' },
+          { type: 'github', href: '#' }
+        ]
       },
       {
-        name: 'Project 2',
-        description: 'Project description 2. You can introduce the main features here.',
+        name: 'UE5 Custom Render Pipeline',
+        description: '基于Unreal Engine 5.7源码的自定义卡通光照模型渲染管线的开发。',
         image: 'byddl.webp',
         links: [
           { type: 'site', href: '#' },
@@ -48,10 +72,8 @@ const headings = [
 
   <!-- sponsorship -->
   <h2 id='sponsorship'>Sponsorship</h2>
-  <p>
-    Please leave a message or contact me directly after sponsoring to be added to the sponsor list.
-    Wishing you joy!
-  </p>
+  <p>Please leave a message or contact me directly after sponsoring to be added to the sponsor list.
+    Wishing you joy!</p>
   <div class='flex flex-col justify-center gap-4 sm:flex-row'>
     {
       [
@@ -72,11 +94,10 @@ const headings = [
       ))
     }
   </div>
-  <p>Thanks to these supporters:</p>
+  <p>Thanks to the following sponsors:</p>
   <Sponsors
     sponsors={[
-      { name: 'Sponsor 1', amount: '10.0', date: '202X-XX-XX' },
-      { name: 'Sponsor 2', amount: '50.0', date: '202X-XX-XX' }
+      { name: '-', amount: '-', date: '--' },
     ]}
   />
 </PageLayout>
