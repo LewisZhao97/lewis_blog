@@ -27,26 +27,38 @@ const distributions = [
 ---
 
 <PageLayout title='About' {headings} info='/about'>
-  <p>Your Profession / <Spoiler>Some fun facts about you</Spoiler></p>
+  <p>Game Engine Developer / Technical Artist / <Spoiler>ISFJ</Spoiler></p>
   <p>
-    Write your personal introduction here. You can introduce your educational background, research interests, work experience, or hobbies.
+    Obsessed with every pixel of a game engine. Passionate about developing editor tools to unleash productivity, using code as a pen to explore the infinite boundaries of technology and vision in the world of XR.
   </p>
   <Button title='Sponsor Me' class='w-fit' href='/en/projects#sponsorship' style='ahead' />
-  <h2 id='distribution'>Website Distribution<a class='anchor' href='#distribution'>#</a></h2>
-  <p>
-    To provide a better browsing experience and improved reliability, this site is deployed across
-    multiple platforms. You can choose the mirror site that best suits your needs:
-  </p>
-  <DistributionSection class='mb-8 mt-6' {distributions} />
-  <p>
-    If you encounter access issues, we recommend trying another mirror site. All sites are kept
-    synchronized and updated.
-  </p>
+  <!--<h2 id='distribution'>Website Distribution<a class='anchor' href='#distribution'>#</a></h2>-->
+  <!--<p>-->
+  <!--  To provide a better browsing experience and improved reliability, this site is deployed across-->
+  <!--  multiple platforms. You can choose the mirror site that best suits your needs:-->
+  <!--</p>-->
+  <!--<DistributionSection class='mb-8 mt-6' {distributions} />-->
+  <!--<p>-->
+  <!--  If you encounter access issues, we recommend trying another mirror site. All sites are kept-->
+  <!--  synchronized and updated.-->
+  <!--</p>-->
   <h2 id='tools'>Tools<a class='anchor' href='#tools'>#</a></h2>
   <ToolSection
     class='mb-5'
-    title='Productivity'
+    title='Development'
     tools={[
+      {
+        name: 'JetBrains Rider',
+        description: 'IDE',
+        href: 'https://www.jetbrains.com/rider/',
+        icon: import('@/assets/tools/rider.svg?raw')
+      },
+      {
+        name: 'JetBrains WebStorm',
+        description: 'IDE',
+        href: 'https://www.jetbrains.com/webstorm/',
+        icon: import('@/assets/tools/webstorm.svg?raw')
+      },
       {
         name: 'VS Code',
         description: 'Code Editor',
@@ -57,20 +69,8 @@ const distributions = [
         name: 'Cursor',
         description: 'AI-powered Code Editor',
         href: 'https://cursor.com',
-        icon: import('@/assets/tools/cursor.svg?raw')
+        icon: import('@/assets/tools/antigravity.svg?raw')
       },
-      {
-        name: 'Chrome',
-        description: 'Web Browser',
-        href: 'https://www.google.com/chrome/',
-        icon: import('@/assets/tools/chrome.svg?raw')
-      },
-      {
-        name: 'Ubuntu',
-        description: 'Linux Distribution',
-        href: 'https://ubuntu.com',
-        icon: import('@/assets/tools/ubuntu.svg?raw')
-      }
     ]}
   />
   <h2 id='copyright'>Copyright<a class='anchor' href='#copyright'>#</a></h2>
