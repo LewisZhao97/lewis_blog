@@ -13,6 +13,8 @@ const linksConf = links || { logbook: [], applyTip: [] }
 
 const headings = [
   { depth: 2, slug: 'common-links', text: 'Common Links' },
+  { depth: 2, slug: 'special-links', text: 'Special Links' },
+  { depth: 2, slug: 'small-circle', text: 'Small Circle' },
   { depth: 2, slug: 'apply-links', text: 'Apply Links' },
   ...(config.personal?.domains?.friendCircle ? [{ depth: 2, slug: 'small-circle', text: 'Small Circle' }] : [])
 ]
@@ -20,7 +22,7 @@ const headings = [
 const { friends } = friendsData
 ---
 
-<CommonPage title='Links' {headings} info='/links'>
+<CommonPage title='Links' {headings} info='/links' highlightColor="#fccb84">
   <div class='space-y-12'>
     <section class='space-y-6'>
       <div class='flex items-center gap-3 pb-3 border-b border-border/30'>

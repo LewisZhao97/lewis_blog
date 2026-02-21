@@ -13,12 +13,13 @@ interface Props {
         slug: string
         hideComment?: boolean
       }
+  highlightColor?: string
 }
 
-const { title, headings, info, ...props } = Astro.props
+const { title, headings, info, highlightColor } = Astro.props
 ---
 
-<PageLayout meta={{ title }} {...props}>
+<PageLayout meta={{ title }} {highlightColor}>
   {headings?.length && <TOC headings={headings} slot='sidebar' />}
 
   <Fragment slot='header'>

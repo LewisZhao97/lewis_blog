@@ -1,12 +1,12 @@
 ---
 import { PostPreview } from '@/components/pages'
-import { getBlogCollection, groupCollectionsByYear, sortMDByDate } from '@/server'
+import { getBlogCollectionEn, groupCollectionsByYear, sortMDByDate } from '@/server'
 import { Button } from '@/components/user'
 import PageLayout from '@/layouts/BaseLayout.astro'
 
 export const prerender = true
 
-const allPosts = await getBlogCollection()
+const allPosts = await getBlogCollectionEn()
 const allPostsByDate = sortMDByDate(allPosts)
 const allPostsByYear = groupCollectionsByYear(allPostsByDate)
 
@@ -16,7 +16,7 @@ const meta = {
 }
 ---
 
-<PageLayout {meta}>
+<PageLayout meta={meta}>
   <Button title='Back' href='/en' style='back' />
 
   <main class='mt-6 lg:mt-10'>
