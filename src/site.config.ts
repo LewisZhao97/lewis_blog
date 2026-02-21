@@ -9,8 +9,8 @@ export const theme: ThemeUserConfig = {
   author: 'Lewis',
   author_en: 'Lewis',
   /** Description metadata for your website. Can be used in page metadata. */
-  description: 'Axi Theme 使用文档',
-  description_en: 'Axi Theme Documentation',
+  description: 'Lewis 技术美术博客',
+  description_en: 'Lewis Technical Artist Blog',
   /** The default favicon for your site which should be a path to an image in the `public/` directory. */
   favicon: '/favicon/favicon.png',
   /** Specify the default language for this site. */
@@ -44,8 +44,10 @@ export const theme: ThemeUserConfig = {
   header: {
     menu: [
       { title: 'Blog', link: '/blog' },
+      { title: 'Archives', link: '/archives' },
       // { title: 'Academic', link: '/academic' },
       { title: 'Projects', link: '/projects' },
+      { title: 'Library', link: '/library' },
       { title: 'Links', link: '/links' },
       { title: 'About', link: '/about' }
     ]
@@ -71,7 +73,7 @@ export const theme: ThemeUserConfig = {
     blogPageSize: 15,
     externalLinkArrow: true, // show external link arrow
     // Currently support weibo, x, bluesky
-    share: ['weibo', 'x', 'bluesky', 'bilibili'],
+    share: ['weibo', 'x', 'bluesky', 'bilibili']
   },
 
   /** Personal information configuration */
@@ -88,10 +90,10 @@ export const theme: ThemeUserConfig = {
     blogStartDate: '2026-01-02',
     /** Domain configuration */
     domains: {
-      main: 'theme.axi404.top'
+      main: 'theme.axi404.top',
       // githubPages: '',
       // cloudflare: '',
-      // friendCircle: '',
+      friendCircle: 'cworld-fc.netlify.app/',
     }
   }
 }
@@ -135,7 +137,7 @@ export const integ: IntegrationUserConfig = {
   },
   // Comment system
   waline: {
-    enable: false,
+    enable: true,
     // Server service link
     server: 'https://waline.example.com/',
     // Refer https://waline.js.org/en/guide/features/emoji.html
