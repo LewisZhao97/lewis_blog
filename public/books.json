@@ -10,12 +10,17 @@
           "书籍简介": "《性学三论》是奥地利心理学家西格蒙德·弗洛伊德的经典著作，首次将精神分析法应用于性研究。本书分为三篇，分别探讨了性倒错、神经症患者的性冲动、幼儿期性欲以及青春期变化等主题。弗洛伊德通过深入分析，揭示了人类性心理的复杂性和多样性，对后世心理学、性学等领域产生了深远影响。",
           "书评": "性学三论一共三大部分：“性变态”、“幼儿性欲”和“青春期的变化”。弗洛伊德老爷子坚持“性的本能冲动是一切人类行为、成就及神经症产生的根本原因”，本书也算是弗洛伊德性学理论的核心之一了。",
           "二级分支": "心理学-精神分析学派",
-          "作者": ["西格蒙德·弗洛伊德(Sigmund Freud)"],
+          "作者": ["西格蒙德·弗洛伊德 (Sigmund Freud)"],
           "完成阅读时期": "2024年第三季度",
           "封面": "https://cloudflare-imgbed-2dl.pages.dev/file/books/1771693797118_image.png",
           "推荐状态": "推荐",
           "阅读进度": "1",
-          "领域": "心理学"
+          "领域": "心理学",
+          "链接": {
+            "douban": "https://book.douban.com/subject/26319527/",
+            "weread": "https://weread.qq.com/web/reader/94d32c2058add794dc73c0d",
+            "dedao": "https://www.dedao.cn/search/ebook/result?id=N4yqKRVn1jAJaMyOQ2YorRp6DvXm7wexJXV3GBKLzkPq5gdxEV98eNbZl467ovjz&q=%E6%80%A7%E5%AD%A6%E4%B8%89%E8%AE%BA"
+          }
         }
       },
       {
@@ -26,11 +31,35 @@
           "书评": "阅读中...",
           "二级分支": "心理学-群体心理学",
           "作者": ["古斯塔夫・勒庞 (Gustave Le Bon，1841-1931)"],
-          "完成阅读时期": "2024年第三季度",
+          "完成阅读时期": "2026年第一季度",
           "封面": "https://cloudflare-imgbed-2dl.pages.dev/file/books/1771694001334_image.png",
           "推荐状态": "推荐",
           "阅读进度": "1",
-          "领域": "心理学"
+          "领域": "心理学",
+          "链接": {
+            "douban": "https://book.douban.com/subject/34808973/",
+            "weread": "https://weread.qq.com/web/reader/d1732010813ab983cg012120",
+            "zhihu": "https://www.zhihu.com/pub/book/119984264",
+            "dedao": "https://www.dedao.cn/search/ebook/result?id=DLnMGAEG7gKLyYmkAbPaEXxD8BM4J0LZMzq3ROrpdZn19VNzv2o5e6lqjQQ1poxq&q=%E4%B9%8C%E5%90%88%E4%B9%8B%E4%BC%97"
+          }
+        }
+      },
+      {
+        "id": "hVCttVRU",
+        "fields": {
+          "书名": "A Philosophy of Software Design",
+          "书籍简介": "This book addresses the topic of software design: how to decompose complex software systems into modules (such as classes and methods) that can be implemented relatively independently. The book first introduces the fundamental problem in software design, which is managing complexity. It then discusses philosophical issues about how to approach the software design process and it...\n\n",
+          "书评": "阅读中...",
+          "二级分支": "计算机科学-编程架构",
+          "作者": ["约翰·K·奥斯泰霍特 (John K. Ousterhout)"],
+          "完成阅读时期": "2026年第一季度",
+          "封面": "https://cloudflare-imgbed-2dl.pages.dev/file/books/1771694965370_image.png",
+          "推荐状态": "推荐",
+          "阅读进度": "1",
+          "领域": "计算机科学",
+          "链接": {
+            "douban": "https://book.douban.com/subject/35680420/"
+          }
         }
       }
     ],
