@@ -18,7 +18,7 @@ const headings = [
 ]
 ---
 
-<PageLayout title='Projects' {headings} view>
+<PageLayout title='Projects' {headings} highlightColor="#c8fff0">
   <p>Github Activities:</p>
   <p>
     <Image
@@ -66,6 +66,15 @@ const headings = [
         links: [
           { type: 'site', href: '#' },
           { type: 'github', href: '#' }
+        ]
+      },
+      {
+        name: 'Genshin Impact NPR Shader',
+        description: '基于Unity URP管线实现的粉丝向《原神》角色着色器复刻。',
+        image: 'https://cloudflare-imgbed-2dl.pages.dev/file/projects/1771941745105_cover.jpg',
+        links: [
+          { type: 'site', href: 'https://www.bilibili.com/video/BV1scgvexExh/' },
+          // { type: 'github', href: '#' }
         ]
       }
     ]}

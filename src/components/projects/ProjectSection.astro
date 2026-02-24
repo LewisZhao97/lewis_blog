@@ -32,14 +32,17 @@ const projectIconSet: Record<string, iconsType> = {
 <div class={className} {...props}>
   <div class='grid grid-cols-1 gap-6 md:grid-cols-2 lg:gap-8'>
     {
-      project.map((project, index) => {
-        var imagePath = null
-        if (project.image) {
-          imagePath = '/src/assets/projects/' + project.image
-          if (!images[imagePath])
+      project.map((item, index) => {
+        const isExternalImage = item.image && (item.image.startsWith('http://') || item.image.startsWith('https://'));
+        let localImagePath = null;
+
+        if (item.image && !isExternalImage) {
+          localImagePath = '/src/assets/projects/' + item.image;
+          if (!images[localImagePath]) {
             throw new Error(
-              `"${imagePath}" does not exist in glob: "src/assets/projects/*.{jpeg,jpg,png,gif}"`
-            )
+              `"${localImagePath}" does not exist in glob: "src/assets/projects/*.{jpeg,jpg,png,gif,webp}"`
+            );
+          }
         }
 
         return (
@@ -51,14 +54,23 @@ const projectIconSet: Record<string, iconsType> = {
             <div class='absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-accent/5 opacity-0 transition-opacity duration-500 group-hover:opacity-100' />
             
             {/* Image background */}
-            {imagePath && (
+            {item.image && (
               <div class='absolute inset-0 overflow-hidden'>
-                <Image
-                  class='h-full w-full object-cover opacity-0 blur-sm transition-all duration-700 group-hover:opacity-10 group-hover:blur-none group-hover:scale-110'
-                  src={images[imagePath]()}
-                  alt={project.name}
-                  loading='lazy'
-                />
+                {isExternalImage ? (
+                  <img
+                    class='h-full w-full object-cover opacity-0 blur-sm transition-all duration-700 group-hover:opacity-10 group-hover:blur-none group-hover:scale-110'
+                    src={item.image}
+                    alt={item.name}
+                    loading='lazy'
+                  />
+                ) : (
+                  <Image
+                    class='h-full w-full object-cover opacity-0 blur-sm transition-all duration-700 group-hover:opacity-10 group-hover:blur-none group-hover:scale-110'
+                    src={images[localImagePath as string]()}
+                    alt={item.name}
+                    loading='lazy'
+                  />
+                )}
               </div>
             )}
             
@@ -67,35 +79,44 @@ const projectIconSet: Record<string, iconsType> = {
               {/* Header section */}
               <div class='flex-1 space-y-3'>
                 <div class='flex items-start justify-between gap-4'>
-                  <a 
-                    href={project.links.find(link => link.type === 'site')?.href || project.links[0].href}
+                  <a
+                    href={item.links.find(link => link.type === 'site')?.href || item.links[0]?.href}
                     target='_blank'
                     class='group/title no-underline'
                   >
                     <h3 class='text-xl font-semibold tracking-tight text-foreground transition-colors group-hover/title:text-primary'>
-                      {project.name}
+                      {item.name}
                     </h3>
                   </a>
-                  {imagePath && (
+                  {item.image && (
                     <div class='flex-shrink-0 overflow-hidden rounded-lg border border-border/30 bg-background/60 p-1.5 backdrop-blur-sm transition-all duration-300 group-hover:border-primary/30 group-hover:bg-background/80'>
-                      <Image
-                        class='h-10 w-10 object-cover opacity-80 transition-opacity group-hover:opacity-100'
-                        src={images[imagePath]()}
-                        alt={project.name}
-                        loading='lazy'
-                      />
+                      {isExternalImage ? (
+                        <img
+                          class='h-10 w-10 object-cover opacity-80 transition-opacity group-hover:opacity-100'
+                          src={item.image}
+                          alt={item.name}
+                          loading='lazy'
+                        />
+                      ) : (
+                        <Image
+                          class='h-10 w-10 object-cover opacity-80 transition-opacity group-hover:opacity-100'
+                          src={images[localImagePath as string]()}
+                          alt={item.name}
+                          loading='lazy'
+                        />
+                      )}
                     </div>
                   )}
                 </div>
                 
                 <p class='text-sm leading-relaxed text-muted-foreground transition-colors group-hover:text-foreground/80'>
-                  {project.description}
+                  {item.description}
                 </p>
               </div>
               
               {/* Footer section */}
               <div class='mt-4 flex items-center gap-2 border-t border-border/30 pt-3'>
-                {project.links.map((link) => {
+                {item.links.map((link) => {
                   const icon = projectIconSet[link.type]
                   return (
                     <a
