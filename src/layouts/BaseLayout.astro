@@ -4,6 +4,8 @@ import config from '@/site-config'
 
 import { Footer, Header, ThemeProvider } from '@/components/basic'
 import type { SiteMeta } from '@/types'
+
+import BackgroundRandom from '@/components/custom/BackgroundRandom.astro'
 // Import the global.css file here so that it is included on
 // all pages through the use of the <BaseLayout /> component.
 import '@/assets/styles/app.css'
@@ -40,6 +42,7 @@ const langAttr = currentLocale === 'en' ? 'en' : 'zh'
   </head>
 
   <body class='flex justify-center bg-background'>
+  <BackgroundRandom />
     <!-- <div
       id='gradient-background'
       class='pointer-events-none fixed h-screen w-screen blur-2xl transition-opacity duration-1000'
