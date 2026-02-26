@@ -1,8 +1,9 @@
-import type { WarningType } from './types'
-import { getCurrentLanguage, i18nContent } from './i18n'
-import { markWarningShown } from './cache'
+import { markWarningShown } from './cache';
+import { getCurrentLanguage, i18nContent } from './i18n';
+import type { WarningType } from './types';
 
-const STORAGE_KEY = 'axi-blog-graphics-warning-shown'
+
+const STORAGE_KEY = 'lewis-blog-graphics-warning-shown'
 
 export function showWarning(
   title: string,

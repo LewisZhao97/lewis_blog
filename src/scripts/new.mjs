@@ -1,3 +1,4 @@
+;
 /**
  * Create a new post in the content directory
  *
@@ -14,11 +15,14 @@
  *   astro-axi new -l zh "你好，世界"
  */
 
-import fs from 'node:fs'
-import path from 'node:path'
+import fs from 'node:fs';
+import path from 'node:path';
 
-import minimist from './libs/minimist.cjs'
-import slugify from './libs/slugify.cjs'
+
+
+import minimist from './libs/minimist.cjs';
+import slugify from './libs/slugify.cjs';
+
 
 function getDate() {
   const date = new Date()
@@ -40,7 +44,7 @@ function getPostSlug(postTitle) {
   return slug
 }
 
-const HELP_INFO = `Usage: astro-axi new [options] <post-title>
+const HELP_INFO = `Usage: astro-lewis new [options] <post-title>
 
 Options:
   -l, --lang           Set the language (default: null)

@@ -16,7 +16,7 @@ import remarkMath from 'remark-math';
 
 
 // Integrations
-import AstroAxiIntegration from './src/axi-integration.ts';
+import AstroLewisIntegration from './src/lewis-integration.ts';
 // Others
 // import { visualizer } from 'rollup-plugin-visualizer'
 
@@ -27,6 +27,37 @@ import rehypeAutolinkHeadings from './src/plugins/rehype-auto-link-headings.ts';
 // Shiki
 import { addCopyButton, addLanguage, addTitle, transformerNotationDiff, transformerNotationHighlight, updateStyle } from './src/plugins/shiki-transformers.ts';
 import config from './src/site.config.ts';
+
+
+;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 ;
@@ -259,7 +290,7 @@ export default defineConfig({
     // sitemap(),
     mdx(),
     // tailwind({ applyBaseStyles: false }),
-    AstroAxiIntegration(config),
+    AstroLewisIntegration(config),
     // (await import('@playform/compress')).default({
     //   SVG: false,
     //   Exclude: ['index.*.js']
@@ -281,10 +312,7 @@ export default defineConfig({
   },
   // Markdown Options
   markdown: {
-    remarkPlugins: [
-      remarkMath,
-      remarkGfm
-    ],
+    remarkPlugins: [remarkMath, remarkGfm],
     rehypePlugins: [
       rehypeHeadingIds,
       [rehypeKatex, {}],

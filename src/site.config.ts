@@ -100,14 +100,16 @@ export const theme: ThemeUserConfig = {
 
 export const integ: IntegrationUserConfig = {
   links: {
-    logbook: [
-    ],
+    logbook: [],
     // Yourself link info
     applyTip: [
       { name: 'Name', val: theme.title },
       { name: 'Desc', val: theme.description || 'Null' },
       { name: 'Link', val: `https://${theme.personal?.domains?.main || 'example.com'}` },
-      { name: 'Avatar', val: `https://${theme.personal?.domains?.main || 'example.com'}/avatar/avatar.png` }
+      {
+        name: 'Avatar',
+        val: `https://${theme.personal?.domains?.main || 'example.com'}/avatar/avatar.png`
+      }
     ]
   },
   // Enable page search function
@@ -125,7 +127,7 @@ export const integ: IntegrationUserConfig = {
   typography: {
     // https://github.com/tailwindlabs/tailwindcss-typography
     class:
-      'break-words prose prose-axi dark:prose-invert dark:prose-axi prose-headings:font-medium'
+      'break-words prose prose-lewis dark:prose-invert dark:prose-lewis prose-headings:font-medium'
   },
   // A lightbox library that can add zoom effect
   mediumZoom: {

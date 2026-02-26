@@ -6,7 +6,7 @@ const fgMuted = 'hsl(var(--muted-foreground) / var(--tw-text-opacity, 1))'
 const bgMuted = 'hsl(var(--muted) / var(--tw-bg-opacity, 1))'
 
 const typographyConfig = ({ theme }) => ({
-  axi: {
+  lewis: {
     css: {
       '--tw-prose-headings': fg,
       '--tw-prose-body': fgMuted,

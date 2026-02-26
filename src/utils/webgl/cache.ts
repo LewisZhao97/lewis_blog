@@ -1,7 +1,8 @@
-import type { WebGLSupportCache } from './types'
+import type { WebGLSupportCache } from './types';
 
-const STORAGE_KEY = 'axi-blog-graphics-warning-shown'
-const WEBGL_CACHE_KEY = 'axi-blog-webgl-support'
+
+const STORAGE_KEY = 'lewis-blog-graphics-warning-shown'
+const WEBGL_CACHE_KEY = 'lewis-blog-webgl-support'
 const CACHE_VERSION = '1.0'
 const CACHE_EXPIRE_TIME = 7 * 24 * 60 * 60 * 1000
 

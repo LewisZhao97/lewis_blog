@@ -1,4 +1,8 @@
-import { exec } from 'child_process'
+import { exec } from 'child_process';
+
+
+
+
 
 const runCommand = (command, cwd, timeout = 5000) => {
   return new Promise((resolve, reject) => {
@@ -25,10 +29,10 @@ const runCommand = (command, cwd, timeout = 5000) => {
 export default async function main() {
   if (process.env.BUN_LINK_PKG === 'true') {
     try {
-      console.log('Running "bun link" at "./packages/axi"')
-      console.log(await runCommand('bun link', './packages/axi'))
-      console.log('Running "bun link astro-axi" at "."')
-      console.log(await runCommand('bun link astro-axi', '.'))
+      console.log('Running "bun link" at "./packages/lewis"')
+      console.log(await runCommand('bun link', './packages/lewis'))
+      console.log('Running "bun link astro-lewis" at "."')
+      console.log(await runCommand('bun link astro-lewis', '.'))
       console.log('Commands executed successfully.')
     } catch (error) {
       console.error(error)

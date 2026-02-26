@@ -14,18 +14,18 @@ import { vitePluginUserConfig } from './plugins/virtual-user-config'
 import { UserConfigSchema, type UserInputConfig } from './types/user-config'
 import { parseWithFriendlyErrors } from './utils/error-map'
 
-export default function AstroAxiIntegration(opts: UserInputConfig): AstroIntegration {
-  let integrations: AstroIntegration[] = []
-  let remarkPlugins: RemarkPlugins = []
-  let rehypePlugins: RehypePlugins = []
+export default function AstroLewisIntegration(opts: UserInputConfig): AstroIntegration {
+  const integrations: AstroIntegration[] = []
+  const remarkPlugins: RemarkPlugins = []
+  const rehypePlugins: RehypePlugins = []
   return {
-    name: 'astro-axi',
+    name: 'astro-lewis',
     hooks: {
       'astro:config:setup': async ({ config, updateConfig }) => {
-        let userConfig = parseWithFriendlyErrors(
+        const userConfig = parseWithFriendlyErrors(
           UserConfigSchema,
           opts,
-          'Invalid config passed to astro-axi integration'
+          'Invalid config passed to astro-lewis integration'
         )
 
         // Add built-in integrations only if they are not already added by the user through the
@@ -64,12 +64,11 @@ export default function AstroAxiIntegration(opts: UserInputConfig): AstroIntegra
         // e.g. if a user has `integrations: [starlight(), tailwind()]`, then the order will be
         // `[starlight(), expressiveCode(), sitemap(), mdx(), tailwind()]`.
         // This ensures users can add integrations before/after Starlight and we respect that order.
-        const selfIndex = config.integrations.findIndex((i) => i.name === 'astro-axi')
+        const selfIndex = config.integrations.findIndex((i) => i.name === 'astro-lewis')
         config.integrations.splice(selfIndex + 1, 0, ...integrations)
 
         updateConfig({
           vite: {
-            // @ts-ignore
             plugins: [vitePluginUserConfig(userConfig, config)]
           },
           markdown: {

@@ -1,6 +1,9 @@
-import { z } from 'astro/zod'
+import { z } from 'astro/zod';
 
-import { FriendLinksSchema } from '../schemas/links'
+
+
+import { FriendLinksSchema } from '../schemas/links';
+
 
 export const IntegrationConfigSchema = () =>
   z.object({
@@ -29,7 +32,7 @@ export const IntegrationConfigSchema = () =>
       /** The class to apply to the typography. */
       class: z
         .string()
-        .default('prose prose-axi dark:prose-invert dark:prose-axi prose-headings:font-medium')
+        .default('prose prose-lewis dark:prose-invert dark:prose-lewis prose-headings:font-medium')
     }),
 
     /** A lightbox library that can add zoom effect */
