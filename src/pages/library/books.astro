@@ -1,7 +1,7 @@
 ---
 import CommonPage from '@/layouts/CommonPage.astro'
 import { cn } from "@/libs/utils.ts"
-import booksData from "@/public/books.json"
+import booksData from "@/public/data/books.json"
 
 interface BookFields {
   书名: string
@@ -114,7 +114,7 @@ const headings = [
     </span>
   </div>
 
-  <div class="space-y-4 mb-10">
+  <div class="space-y-5 mb-10 bg-muted/30 p-5 rounded-xl border border-border/50">
     <div class="relative max-w-sm">
       <span class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground">
         <svg viewBox="0 0 24 24" aria-hidden="true" class="h-4 w-4">
@@ -125,46 +125,48 @@ const headings = [
         data-bookshelf-search
         type="text"
         placeholder="搜索书名或作者..."
-        class="w-full pl-10 pr-4 py-2.5 bg-background border border-border rounded-lg text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/50 transition-all"
+        class="w-full pl-10 pr-4 py-2 bg-background border border-border rounded-lg text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/50 transition-all"
       />
     </div>
 
-    <div class="flex flex-wrap items-center gap-x-6 gap-y-3">
+    <div class="flex flex-col gap-4">
       <div class="flex items-center gap-2 flex-wrap">
-        <span class="text-xs text-muted-foreground uppercase tracking-wide">领域</span>
+        <span class="text-xs text-muted-foreground uppercase tracking-wide w-12">领域</span>
         {categories.map((category) => (
           <button
             type="button"
             data-filter-category={category}
-            data-active-class="bg-primary text-primary-foreground"
-            data-inactive-class="text-muted-foreground hover:text-foreground hover:bg-muted/50"
+            data-active-class="bg-sky-500 text-white border-sky-500 dark:bg-sky-600 dark:border-sky-600"
+            data-inactive-class="bg-transparent text-muted-foreground border-transparent hover:bg-sky-500/10 hover:border-sky-500/50 hover:text-sky-500"
             class={cn(
-              "px-3 py-1.5 rounded-md text-xs transition-all duration-200",
-              category === "全部" ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:text-foreground hover:bg-muted/50",
-              )}
+              "px-3 py-1 rounded-md text-xs transition-all duration-200 border",
+              category === "全部"
+                ? "bg-sky-500 text-white border-sky-500 dark:bg-sky-600 dark:border-sky-600"
+                : "bg-transparent text-muted-foreground border-transparent hover:bg-sky-500/10 hover:border-sky-500/50 hover:text-sky-500",
+            )}
           >
             {category}
           </button>
         ))}
       </div>
 
-      <div class="h-4 w-px bg-border hidden sm:block" />
-
       <div class="flex items-center gap-2 flex-wrap">
-        <span class="text-xs text-muted-foreground uppercase tracking-wide">评价</span>
+        <span class="text-xs text-muted-foreground uppercase tracking-wide w-12">评价</span>
         {recommendStatuses.map((status) => (
           <button
             type="button"
             data-filter-status={status}
-            data-active-class="bg-primary text-primary-foreground"
-            data-inactive-class="text-muted-foreground hover:text-foreground hover:bg-muted/50"
+            data-active-class="bg-sky-500 text-white border-sky-500 dark:bg-sky-600 dark:border-sky-600"
+            data-inactive-class="bg-transparent text-muted-foreground border-transparent hover:bg-sky-500/10 hover:border-sky-500/50 hover:text-sky-500"
             class={cn(
-              "px-3 py-1.5 rounded-md text-xs transition-all duration-200",
-              status === "全部" ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:text-foreground hover:bg-muted/50",
-              )}
-          >
-            {status}
-          </button>
+          "px-3 py-1 rounded-md text-xs transition-all duration-200 border",
+            status === "全部"
+              ? "bg-sky-500 text-white border-sky-500 dark:bg-sky-600 dark:border-sky-600"
+              : "bg-transparent text-muted-foreground border-transparent hover:bg-sky-500/10 hover:border-sky-500/50 hover:text-sky-500",
+          )}
+        >
+          {status}
+        </button>
         ))}
       </div>
     </div>

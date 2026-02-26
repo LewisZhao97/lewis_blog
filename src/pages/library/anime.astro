@@ -1,0 +1,803 @@
+﻿---
+import { cn } from '@/libs/utils.ts'
+import animeData from '@/public/data/anime.json'
+
+import CommonPage from '@/layouts/CommonPage.astro'
+
+interface AnimeFields {
+  番剧名: string
+  封面?: string
+  完成观看时期?: string
+  短评?: string
+  简介?: string
+  推荐状态?: '推荐' | '中庸' | '不行' | '未评分' | string
+  观看进度?: string // "1": 想看, "2": 在看, "3": 看过
+  标签?: string[]
+  链接?: Record<string, string>
+}
+
+interface AnimeRecord {
+  fields: AnimeFields
+  id: string
+}
+
+const allAnime = animeData as AnimeRecord[]
+
+const progressMap: Record<string, string> = {
+  '1': '想看',
+  '2': '在看',
+  '3': '看过'
+}
+
+const allTags = Array.from(new Set(allAnime.flatMap((a) => a.fields.标签 || []))).sort()
+const tagsList = ['全部', ...allTags]
+
+const progressStatuses = ['全部', '看过', '在看', '想看']
+const recommendStatuses = ['全部', '推荐', '中庸', '不行', '未评分']
+
+// 按观看进度将番剧分组 (作为页面的大版块)
+const animeByProgress = allAnime.reduce<Record<string, AnimeRecord[]>>(
+  (acc, anime) => {
+    const prog = progressMap[anime.fields.观看进度 || '3'] || '看过'
+    if (!acc[prog]) acc[prog] = []
+    acc[prog].push(anime)
+    return acc
+  },
+  { 看过: [], 在看: [], 想看: [] }
+)
+
+const stats = {
+  total: allAnime.length,
+  recommended: allAnime.filter((b) => b.fields.推荐状态 === "推荐").length,
+  watched: animeByProgress['看过']?.length || 0,
+  tagsCount: allTags.length
+}
+
+const getCoverUrl = (anime: AnimeRecord): string | null => {
+  return anime.fields.封面 || null
+}
+
+const getRecommendBadge = (status?: string) => {
+  switch (status) {
+    case '推荐':
+      return {
+        icon: 'ThumbsUp',
+        className: 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400'
+      }
+    case '中庸':
+      return {
+        icon: 'Minus',
+        className: 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400'
+      }
+    case '不行':
+      return {
+        icon: 'ThumbsDown',
+        className: 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400'
+      }
+    default:
+      return null
+  }
+}
+
+// 传递给客户端弹窗的数据
+const animeForClient = allAnime.map((anime) => {
+  return {
+    id: anime.id,
+    title: anime.fields.番剧名,
+    tags: anime.fields.标签?.join(', ') ?? '无标签',
+    progress: progressMap[anime.fields.观看进度 || '3'] || '看过',
+    status: anime.fields.推荐状态 ?? '未评分',
+    cover: getCoverUrl(anime) ?? '',
+    review: anime.fields.短评 ?? '',
+    description: anime.fields.简介 ?? '',
+    finished: anime.fields.完成观看时期 ?? '',
+    links: anime.fields.链接 || {}
+  }
+})
+
+// 根据需要添加侧边栏导航，如果没有可以删除
+const headings = [
+  { depth: 2, slug: '看过', text: '看过' },
+  { depth: 2, slug: '在看', text: '在看' },
+  { depth: 2, slug: '想看', text: '想看' }
+]
+---
+
+<CommonPage
+  title='番剧'
+  {headings}
+  info={{ slug: '/library/anime', hideComment: true }}
+  highlightColor="#ec82af"
+>
+  <div class='mb-10'>
+    <p class='text-lg text-muted-foreground'>二次元的浪漫与幻想，属于光影与动画的记忆。</p>
+  </div>
+
+  <div class='mb-8 flex flex-wrap items-center gap-6 text-sm text-muted-foreground'>
+    <span class='flex items-center gap-2'>
+      <span class='inline-flex h-4 w-4 items-center justify-center text-pink-400'>
+        <svg
+          viewBox='0 0 24 24'
+          fill='none'
+          stroke='currentColor'
+          stroke-width='2'
+          stroke-linecap='round'
+          stroke-linejoin='round'
+          class='h-4 w-4'
+          ><rect x='2' y='7' width='20' height='15' rx='2' ry='2'></rect><polyline
+            points='17 2 12 7 7 2'></polyline><line x1="7" y1="13" x2="7" y2="16"></line><line x1="17" y1="13" x2="17" y2="16"></line></svg
+        >
+      </span>
+      <span class='font-medium text-foreground'>{stats.watched}</span> 部已看
+    </span>
+
+    <span class='flex items-center gap-2'>
+      <span class='inline-flex h-4 w-4 items-center justify-center text-green-500'>
+        <svg viewBox='0 0 24 24' aria-hidden='true' class='h-4 w-4'>
+          <path fill='currentColor' d='M2 10h6.5L10 3l4 7h6l-5 6 2.5 6-5-4-5 4L9 16z'></path>
+        </svg>
+      </span>
+      <span class='font-medium text-foreground'>{stats.recommended}</span> 部推荐
+    </span>
+
+    <span class='flex items-center gap-2'>
+      <span class='inline-flex h-4 w-4 items-center justify-center text-primary'>
+        <svg
+          viewBox='0 0 24 24'
+          fill='none'
+          stroke='currentColor'
+          stroke-width='2'
+          stroke-linecap='round'
+          stroke-linejoin='round'
+          class='h-4 w-4'
+          ><path d='M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z'
+          ></path><line x1='7' y1='7' x2='7.01' y2='7'></line></svg
+        >
+      </span>
+      <span class='font-medium text-foreground'>{stats.tagsCount}</span> 个标签
+    </span>
+  </div>
+
+  <div class='mb-10 space-y-5 rounded-xl border border-border/50 bg-muted/30 p-5'>
+    <div class='relative max-w-sm'>
+      <span class='absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground'>
+        <svg viewBox='0 0 24 24' aria-hidden='true' class='h-4 w-4'>
+          <path
+            fill='currentColor'
+            d='M10 4a6 6 0 1 0 3.5 10.8l4.9 4.9 1.4-1.4-4.9-4.9A6 6 0 0 0 10 4m0 2a4 4 0 1 1 0 8 4 4 0 0 1 0-8'
+          ></path>
+        </svg>
+      </span>
+      <input
+        data-anime-search
+        type='text'
+        placeholder='搜索番剧名或标签...'
+        class='w-full rounded-lg border border-border bg-background py-2 pl-10 pr-4 text-sm text-foreground transition-all placeholder:text-muted-foreground focus:border-primary/50 focus:outline-none focus:ring-2 focus:ring-primary/20'
+      />
+    </div>
+
+    <div class="flex flex-col gap-4">
+      <div class="flex items-center gap-2 flex-wrap">
+        <span class="text-xs text-muted-foreground uppercase tracking-wide w-12">进度</span>
+        {progressStatuses.map((status) => (
+          <button
+            type="button"
+            data-filter-progress={status}
+            data-active-class="bg-pink-500 text-white border-pink-500 dark:bg-pink-600 dark:border-pink-600"
+            data-inactive-class="bg-transparent text-muted-foreground border-transparent hover:bg-pink-500/10 hover:border-pink-500/50 hover:text-pink-500"
+            class={cn(
+              "px-3 py-1 rounded-md text-xs transition-all duration-200 border",
+              status === "全部" ? "bg-pink-500 text-white border-pink-500 dark:bg-pink-600 dark:border-pink-600" : "bg-transparent text-muted-foreground border-transparent hover:bg-pink-500/10 hover:border-pink-500/50 hover:text-pink-500",
+            )}
+          >
+            {status}
+          </button>
+        ))}
+      </div>
+
+      <div class="flex items-center gap-2 flex-wrap">
+        <span class="text-xs text-muted-foreground uppercase tracking-wide w-12">评价</span>
+        {recommendStatuses.map((status) => (
+          <button
+            type="button"
+            data-filter-status={status}
+            data-active-class="bg-pink-500 text-white border-pink-500 dark:bg-pink-600 dark:border-pink-600"
+            data-inactive-class="bg-transparent text-muted-foreground border-transparent hover:bg-pink-500/10 hover:border-pink-500/50 hover:text-pink-500"
+            class={cn(
+              "px-3 py-1 rounded-md text-xs transition-all duration-200 border",
+              status === "全部" ? "bg-pink-500 text-white border-pink-500 dark:bg-pink-600 dark:border-pink-600" : "bg-transparent text-muted-foreground border-transparent hover:bg-pink-500/10 hover:border-pink-500/50 hover:text-pink-500",
+            )}
+          >
+            {status}
+          </button>
+        ))}
+      </div>
+
+      <div class="flex items-start gap-2 flex-wrap">
+        <span class="text-xs text-muted-foreground uppercase tracking-wide w-12 mt-1.5">标签</span>
+        <div class="flex-1 flex flex-wrap gap-2">
+          {tagsList.map((tag) => (
+            <button
+              type="button"
+              data-filter-tag={tag}
+              data-active-class="bg-pink-500 text-white border-pink-500 dark:bg-pink-600 dark:border-pink-600"
+              data-inactive-class="bg-transparent text-muted-foreground border-transparent hover:bg-pink-500/10 hover:border-pink-500/50 hover:text-pink-500"
+              class={cn(
+                "px-2.5 py-1 rounded-md text-xs transition-all duration-200 border",
+                tag === "全部" ? "bg-pink-500 text-white border-pink-500 dark:bg-pink-600 dark:border-pink-600" : "bg-transparent text-muted-foreground border-transparent hover:bg-pink-500/10 hover:border-pink-500/50 hover:text-pink-500",
+              )}
+            >
+              {tag}
+            </button>
+          ))}
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class='space-y-12' data-anime-sections>
+    {
+      Object.entries(animeByProgress).map(([progress, animes]) => (
+        <section data-progress-section={progress} id={progress}>
+          <div class='mb-6 flex items-baseline gap-3'>
+            <h2 class='text-lg font-semibold text-foreground'>{progress}</h2>
+            <span class='translate-y-[-1px] text-sm text-muted-foreground' data-progress-count>
+              ({animes.length})
+            </span>
+            <div class='h-px flex-1 -translate-y-[-1px] self-center bg-border/50' />
+          </div>
+
+          <div class='grid grid-cols-2 gap-5 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6'>
+            {animes.map((anime) => {
+              const badge = getRecommendBadge(anime.fields.推荐状态)
+              const coverUrl = getCoverUrl(anime)
+              const tags = anime.fields.标签 || []
+              // 卡片上最多显示2个标签，避免太长
+              const displayTags = tags.slice(0, 2)
+
+              return (
+                <button
+                  type='button'
+                  data-anime-card
+                  data-anime-id={anime.id}
+                  data-progress={progress}
+                  data-status={anime.fields.推荐状态 || '未评分'}
+                  data-tags={tags.join(',')}
+                  data-title={anime.fields.番剧名.toLowerCase()}
+                  class='group flex h-full w-full cursor-pointer flex-col text-left focus:outline-none'
+                >
+                  <div class='relative mb-3 aspect-[3/4] w-full overflow-hidden rounded-lg border border-transparent bg-muted/30 shadow-sm transition-all duration-300 group-hover:-translate-y-1 group-hover:border-pink-500/20 group-hover:shadow-xl'>
+                    {coverUrl ? (
+                      <img
+                        src={coverUrl}
+                        alt={anime.fields.番剧名}
+                        loading='lazy'
+                        decoding='async'
+                        referrerpolicy='no-referrer'
+                        class='h-full w-full object-cover transition-transform duration-500 group-hover:scale-105'
+                      />
+                    ) : (
+                      <div class='flex h-full w-full items-center justify-center bg-gradient-to-br from-pink-500/20 via-pink-500/10 to-transparent p-3'>
+                        <p class='line-clamp-4 text-center text-xs font-semibold text-foreground'>
+                          {anime.fields.番剧名}
+                        </p>
+                      </div>
+                    )}
+
+                    {badge && (
+                      <div
+                        class={cn(
+                          'absolute right-2 top-2 flex h-6 w-6 items-center justify-center rounded-full shadow-sm',
+                          badge.className
+                        )}
+                      >
+                        <span class='text-xs font-semibold' aria-hidden='true'>
+                          ★
+                        </span>
+                      </div>
+                    )}
+
+                    <div class='absolute inset-0 flex flex-col justify-end bg-gradient-to-t from-black/95 via-black/60 to-transparent p-3 opacity-0 transition-opacity duration-300 group-hover:opacity-100'>
+                      {anime.fields.短评 ? (
+                        <p class='line-clamp-4 text-xs leading-relaxed text-white/90'>
+                          {anime.fields.短评}
+                        </p>
+                      ) : anime.fields.简介 ? (
+                        <p class='line-clamp-4 text-xs leading-relaxed text-white/80'>
+                          {anime.fields.简介}
+                        </p>
+                      ) : null}
+                    </div>
+                  </div>
+
+                  <div class='flex flex-1 flex-col space-y-1.5'>
+                    <h3 class='line-clamp-2 text-sm font-medium leading-snug text-foreground transition-colors group-hover:text-pink-500'>
+                      {anime.fields.番剧名}
+                    </h3>
+                    {displayTags.length > 0 ? (
+                      <div class='mt-auto flex flex-wrap gap-1.5 pt-1'>
+                        {displayTags.map((tag) => (
+                          <span class='rounded bg-muted/80 px-1.5 py-0.5 text-[10px] text-muted-foreground transition-colors group-hover:bg-pink-500/10 group-hover:text-pink-600 dark:group-hover:text-pink-400'>
+                            {tag}
+                          </span>
+                        ))}
+                      </div>
+                    ) : (
+                      <p class='mt-auto pt-1 text-xs text-transparent' aria-hidden='true'>
+                        &nbsp;
+                      </p>
+                    )}
+                  </div>
+                </button>
+              )
+            })}
+          </div>
+        </section>
+      ))
+    }
+  </div>
+
+  <div class='hidden py-16 text-center' data-empty-state>
+    <span
+      class='mx-auto mb-4 inline-flex h-12 w-12 items-center justify-center text-muted-foreground/30'
+    >
+      <svg
+        viewBox='0 0 24 24'
+        fill='none'
+        stroke='currentColor'
+        stroke-width='2'
+        stroke-linecap='round'
+        stroke-linejoin='round'
+        class='h-12 w-12'
+      >
+        <circle cx='12' cy='12' r='10'></circle>
+        <line x1='8' y1='9' x2='8.01' y2='9'></line>
+        <line x1='16' y1='9' x2='16.01' y2='9'></line>
+        <path d='M16 16s-1.5-2-4-2-4 2-4 2'></path>
+      </svg>
+    </span>
+    <p class='text-muted-foreground'>没有找到匹配的番剧，换个筛选条件试试看？</p>
+  </div>
+
+  <div
+    class='fixed inset-0 z-[60] hidden items-center justify-center px-4'
+    data-anime-modal
+    aria-hidden='true'
+  >
+    <div
+      class='absolute inset-0 bg-black/50 opacity-0 backdrop-blur-sm transition-opacity duration-200'
+      data-anime-backdrop
+    >
+    </div>
+    <div
+      class='relative flex max-h-[85vh] w-full max-w-2xl scale-95 flex-col overflow-hidden rounded-2xl border border-border bg-background opacity-0 shadow-2xl transition-all duration-200'
+      data-anime-panel
+    >
+      <button
+        type='button'
+        class='absolute right-4 top-4 z-10 rounded-full bg-muted/50 p-1 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground'
+        data-anime-close
+        aria-label='关闭'
+      >
+        <svg viewBox='0 0 24 24' aria-hidden='true' class='h-5 w-5'>
+          <path
+            fill='currentColor'
+            d='M18.3 5.7 12 12l6.3 6.3-1.4 1.4L10.6 13.4 4.3 19.7 2.9 18.3 9.2 12 2.9 5.7 4.3 4.3l6.3 6.3 6.3-6.3z'
+          ></path>
+        </svg>
+      </button>
+
+      <div class='flex gap-5 bg-muted/10 p-6'>
+        <div
+          class='aspect-[3/4] w-32 shrink-0 overflow-hidden rounded-lg bg-muted/30 shadow-md'
+          data-modal-cover-wrap
+        >
+          <img
+            data-modal-cover
+            alt=''
+            decoding='async'
+            referrerpolicy='no-referrer'
+            class='hidden h-full w-full object-cover'
+          />
+          <div
+            class='flex h-full w-full items-center justify-center bg-gradient-to-br from-pink-500/20 via-pink-500/10 to-transparent p-3'
+            data-modal-cover-fallback
+          >
+            <p class='text-center text-xs font-semibold text-foreground' data-modal-cover-title></p>
+          </div>
+        </div>
+
+        <div class='min-w-0 flex-1 py-1'>
+          <h2 class='mb-3 text-xl font-bold leading-tight text-foreground' data-modal-title></h2>
+
+          <div class='mb-4 flex flex-wrap gap-2'>
+            <span
+              class='rounded-md bg-pink-100 px-2 py-1 text-xs text-xs dark:bg-muted dark:text-muted-foreground'
+              data-modal-progress></span>
+            <span class='rounded-md px-2 py-1 text-xs' data-modal-status></span>
+            <span
+              class='flex items-center gap-1 rounded-md bg-muted px-2 py-1 text-xs text-muted-foreground'
+              data-modal-finished
+            >
+              <span class='inline-flex h-3 w-3 items-center justify-center'>
+                <svg
+                  viewBox='0 0 24 24'
+                  fill='none'
+                  stroke='currentColor'
+                  stroke-width='2'
+                  class='h-3 w-3'
+                  ><rect x='3' y='4' width='18' height='18' rx='2' ry='2'></rect><line
+                    x1='16'
+                    y1='2'
+                    x2='16'
+                    y2='6'></line><line x1='8' y1='2' x2='8' y2='6'></line><line
+                    x1='3'
+                    y1='10'
+                    x2='21'
+                    y2='10'></line></svg
+                >
+              </span>
+              <span data-modal-finished-text></span>
+            </span>
+          </div>
+
+          <div class='flex flex-wrap gap-1.5' data-modal-tags></div>
+
+          <div class='mt-4 flex flex-wrap gap-2' data-modal-links></div>
+        </div>
+      </div>
+
+      <div class='flex-1 space-y-6 overflow-y-auto px-6 py-6' data-modal-content>
+        <div data-modal-review-section class='rounded-xl border border-border/50 bg-muted/30 p-4'>
+          <h3 class='mb-2 flex items-center gap-2 text-sm font-bold text-foreground'>
+            <svg
+              viewBox='0 0 24 24'
+              fill='none'
+              stroke='currentColor'
+              stroke-width='2'
+              class='h-4 w-4 text-pink-500'
+              ><path d='M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z'></path></svg
+            >
+            我的短评
+          </h3>
+          <p
+            class='whitespace-pre-wrap text-sm leading-relaxed text-foreground/90'
+            data-modal-review
+          >
+          </p>
+        </div>
+
+        <div data-modal-desc-section>
+          <h3 class='mb-2 flex items-center gap-2 text-sm font-bold text-foreground'>
+            <svg
+              viewBox='0 0 24 24'
+              fill='none'
+              stroke='currentColor'
+              stroke-width='2'
+              class='h-4 w-4 text-muted-foreground'
+              ><path d='M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z'></path><polyline
+                points='14 2 14 8 20 8'></polyline><line x1='16' y1='13' x2='8' y2='13'></line><line
+                x1='16'
+                y1='17'
+                x2='8'
+                y2='17'></line><polyline points='10 9 9 9 8 9'></polyline></svg
+            >
+            番剧简介
+          </h3>
+          <p
+            class='whitespace-pre-wrap text-sm leading-relaxed text-muted-foreground'
+            data-modal-desc
+          >
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script
+    type='application/json'
+    id='anime-data'
+    set:html={JSON.stringify(animeForClient).replace(/</g, '\\u003c')}
+  />
+
+  <script is:inline>
+    ;(function () {
+      if (window.__anime_initialized) return
+      window.__anime_initialized = true
+
+      let animeMap = new Map()
+      let state = { tag: '全部', progress: '全部', status: '全部', query: '' }
+
+      function initDOM() {
+        const dataTag = document.getElementById('anime-data')
+        if (dataTag) {
+          const animes = JSON.parse(dataTag.textContent || '[]')
+          animeMap = new Map(animes.map((a) => [String(a.id), a]))
+        }
+
+        const modal = document.querySelector('[data-anime-modal]')
+        if (modal && modal.parentNode !== document.body) {
+          document.body.appendChild(modal)
+        }
+      }
+
+      function updateFilterUI() {
+        const up = (selector, stateVal) => {
+          document.querySelectorAll(selector).forEach((btn) => {
+            // 这里用特殊处理，因为 selector 可能包含破折号
+            const attrName = selector.replace(/\[|\]/g, '')
+            const isActive = btn.getAttribute(attrName) === stateVal
+            const activeClasses = (btn.getAttribute('data-active-class') || '')
+              .split(' ')
+              .filter(Boolean)
+            const inactiveClasses = (btn.getAttribute('data-inactive-class') || '')
+              .split(' ')
+              .filter(Boolean)
+            activeClasses.forEach((c) => btn.classList.toggle(c, isActive))
+            inactiveClasses.forEach((c) => btn.classList.toggle(c, !isActive))
+          })
+        }
+
+        up('[data-filter-tag]', state.tag)
+        up('[data-filter-progress]', state.progress)
+        up('[data-filter-status]', state.status)
+      }
+
+      function applyFilters() {
+        const query = state.query.trim().toLowerCase()
+        const cards = document.querySelectorAll('[data-anime-card]')
+        const sections = document.querySelectorAll('[data-progress-section]')
+        const emptyState = document.querySelector('[data-empty-state]')
+
+        cards.forEach((card) => {
+          // 标签处理：拆分以判断是否包含当前选中标签
+          const tagsAttr = card.getAttribute('data-tags') || ''
+          const tagsArray = tagsAttr ? tagsAttr.split(',') : []
+          const progress = card.getAttribute('data-progress') || ''
+          const status = card.getAttribute('data-status') || ''
+          const title = card.getAttribute('data-title') || ''
+
+          const matchTag = state.tag === '全部' || tagsArray.includes(state.tag)
+          const matchProgress = state.progress === '全部' || progress === state.progress
+          const matchStatus = state.status === '全部' || status === state.status
+          // 支持搜索名称或标签
+          const matchQuery = !query || title.includes(query) || tagsAttr.includes(query)
+
+          card.classList.toggle('hidden', !(matchTag && matchProgress && matchStatus && matchQuery))
+        })
+
+        let totalVisible = 0
+        sections.forEach((section) => {
+          const sectionCards = Array.from(section.querySelectorAll('[data-anime-card]'))
+          const visibleCount = sectionCards.filter((c) => !c.classList.contains('hidden')).length
+          const countEl = section.querySelector('[data-progress-count]')
+          if (countEl) countEl.textContent = `(${visibleCount})`
+
+          section.classList.toggle('hidden', visibleCount === 0)
+          totalVisible += visibleCount
+        })
+
+        if (emptyState) {
+          emptyState.classList.toggle('hidden', totalVisible === 0)
+        }
+      }
+
+      function openModal(animeId) {
+        const anime = animeMap.get(String(animeId))
+        if (!anime) return
+
+        const modal = document.querySelector('[data-anime-modal]')
+        if (!modal) return
+
+        const setEl = (sel, text, hideIfEmpty = false) => {
+          const el = modal.querySelector(sel)
+          if (el) {
+            el.textContent = text
+            if (hideIfEmpty) el.classList.toggle('hidden', !text)
+          }
+        }
+
+        setEl('[data-modal-title]', anime.title || '未知番剧')
+        setEl('[data-modal-progress]', anime.progress || '未知', true)
+        setEl('[data-modal-finished-text]', anime.finished || '')
+        modal.querySelector('[data-modal-finished]')?.classList.toggle('hidden', !anime.finished)
+
+        setEl('[data-modal-review]', anime.review || '')
+        modal
+          .querySelector('[data-modal-review-section]')
+          ?.classList.toggle('hidden', !anime.review)
+        setEl('[data-modal-desc]', anime.description || '')
+        modal
+          .querySelector('[data-modal-desc-section]')
+          ?.classList.toggle('hidden', !anime.description)
+
+        // 状态徽章渲染
+        const statusEl = modal.querySelector('[data-modal-status]')
+        if (statusEl) {
+          statusEl.textContent = anime.status || '未评分'
+          statusEl.className = 'px-2 py-1 text-xs rounded-md'
+          if (anime.status === '推荐')
+            statusEl.classList.add(
+              'bg-green-100',
+              'text-green-700',
+              'border-green-200',
+              'dark:bg-green-900/30',
+              'dark:text-green-400',
+              'dark:border-green-800/50'
+            )
+          else if (anime.status === '中庸')
+            statusEl.classList.add(
+              'bg-yellow-100',
+              'text-yellow-700',
+              'border-yellow-200',
+              'dark:bg-yellow-900/30',
+              'dark:text-yellow-400',
+              'dark:border-yellow-800/50'
+            )
+          else if (anime.status === '不行')
+            statusEl.classList.add(
+              'bg-red-100',
+              'text-red-700',
+              'border-red-200',
+              'dark:bg-red-900/30',
+              'dark:text-red-400',
+              'dark:border-red-800/50'
+            )
+          else statusEl.classList.add('bg-muted', 'text-muted-foreground') // 未评分样式
+        }
+
+        // 标签渲染
+        const tagsContainer = modal.querySelector('[data-modal-tags]')
+        if (tagsContainer) {
+          tagsContainer.innerHTML = ''
+          const tagsArray = anime.tags && anime.tags !== '无标签' ? anime.tags.split(', ') : []
+          tagsArray.forEach((tag) => {
+            const span = document.createElement('span')
+            span.className =
+              'px-2 py-0.5 text-xs bg-muted text-muted-foreground rounded-md'
+            span.textContent = tag
+            tagsContainer.appendChild(span)
+          })
+        }
+
+        // 封面渲染
+        const coverEl = modal.querySelector('[data-modal-cover]')
+        const fallbackEl = modal.querySelector('[data-modal-cover-fallback]')
+        const coverTitle = modal.querySelector('[data-modal-cover-title]')
+        if (coverEl && fallbackEl && coverTitle) {
+          if (anime.cover) {
+            coverEl.src = anime.cover
+            coverEl.classList.remove('hidden')
+            fallbackEl.classList.add('hidden')
+          } else {
+            coverEl.removeAttribute('src')
+            coverEl.classList.add('hidden')
+            coverTitle.textContent = anime.title || ''
+            fallbackEl.classList.remove('hidden')
+          }
+        }
+
+        // 外链按钮渲染 (替换为 Bangumi 等二次元相关外链)
+        const linksContainer = modal.querySelector('[data-modal-links]')
+        if (linksContainer) {
+          linksContainer.innerHTML = ''
+          const platforms = [
+            {
+              id: 'bangumi',
+              name: 'Bangumi 番组计划',
+              classes:
+                'bg-[#FFEAED] text-[#F09199] hover:bg-[#FDD1D8] dark:bg-[#E9546B]/30 dark:text-[#FFB3BE]'
+            },
+            {
+              id: 'bilibili',
+              name: '哔哩哔哩',
+              classes:
+                'bg-[#F4F4F4] text-[#FB7299] hover:bg-[#E7E7E7] dark:bg-[#FB7299]/20 dark:text-[#FB7299]'
+            }
+          ]
+          const animeLinks = anime.links || {}
+
+          platforms.forEach((platform) => {
+            if (animeLinks[platform.id]) {
+              const btn = document.createElement('a')
+              btn.href = animeLinks[platform.id]
+              btn.target = '_blank'
+              btn.rel = 'noopener noreferrer'
+              btn.className = `inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-md transition-colors ${platform.classes}`
+              btn.innerHTML = `
+                <span>${platform.name}</span>
+                <svg viewBox="0 0 24 24" width="12" height="12" stroke="currentColor" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round" class="opacity-70">
+                  <line x1="7" y1="17" x2="17" y2="7"></line>
+                  <polyline points="7 7 17 7 17 17"></polyline>
+                </svg>
+              `
+              linksContainer.appendChild(btn)
+            }
+          })
+        }
+
+        modal.classList.remove('hidden')
+        modal.classList.add('flex')
+        requestAnimationFrame(() => {
+          modal.querySelector('[data-anime-backdrop]')?.classList.add('opacity-100')
+          modal.querySelector('[data-anime-panel]')?.classList.add('opacity-100', 'scale-100')
+        })
+        modal.setAttribute('aria-hidden', 'false')
+        document.body.classList.add('overflow-hidden')
+      }
+
+      function closeModal() {
+        const modal = document.querySelector('[data-anime-modal]')
+        if (!modal) return
+        modal.querySelector('[data-anime-backdrop]')?.classList.remove('opacity-100')
+        modal.querySelector('[data-anime-panel]')?.classList.remove('opacity-100', 'scale-100')
+        modal.setAttribute('aria-hidden', 'true')
+        document.body.classList.remove('overflow-hidden')
+        setTimeout(() => {
+          modal.classList.remove('flex')
+          modal.classList.add('hidden')
+        }, 200)
+      }
+
+      // 事件委托绑定
+      document.addEventListener('click', (e) => {
+        const tagBtn = e.target.closest('[data-filter-tag]')
+        if (tagBtn) {
+          state.tag = tagBtn.getAttribute('data-filter-tag') || '全部'
+          updateFilterUI()
+          applyFilters()
+          return
+        }
+
+        const progBtn = e.target.closest('[data-filter-progress]')
+        if (progBtn) {
+          state.progress = progBtn.getAttribute('data-filter-progress') || '全部'
+          updateFilterUI()
+          applyFilters()
+          return
+        }
+
+        const statBtn = e.target.closest('[data-filter-status]')
+        if (statBtn) {
+          state.status = statBtn.getAttribute('data-filter-status') || '全部'
+          updateFilterUI()
+          applyFilters()
+          return
+        }
+
+        const card = e.target.closest('[data-anime-card]')
+        if (card) {
+          const id = card.getAttribute('data-anime-id')
+          openModal(id)
+          return
+        }
+
+        if (e.target.closest('[data-anime-close]') || e.target.closest('[data-anime-backdrop]')) {
+          closeModal()
+          return
+        }
+      })
+
+      document.addEventListener('input', (e) => {
+        if (e.target.hasAttribute('data-anime-search')) {
+          state.query = e.target.value
+          applyFilters()
+        }
+      })
+
+      document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') closeModal()
+      })
+
+      document.addEventListener('astro:page-load', () => {
+        initDOM()
+        if (document.querySelector('[data-anime-search]')) {
+          updateFilterUI()
+          applyFilters()
+        }
+      })
+
+      initDOM()
+    })()
+  </script>
+</CommonPage>
