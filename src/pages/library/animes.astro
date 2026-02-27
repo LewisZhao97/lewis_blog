@@ -1,11 +1,13 @@
 ﻿---
 import { cn } from '@/libs/utils.ts'
-import animeData from '@/public/data/anime.json'
+import animeData from '@/public/data/animes.json'
+import animeOverrideData from '@/public/data/anime-overrides.json'
 
 import CommonPage from '@/layouts/CommonPage.astro'
 
 interface AnimeFields {
   番剧名: string
+  工作室?: string
   封面?: string
   完成观看时期?: string
   短评?: string
@@ -21,7 +23,24 @@ interface AnimeRecord {
   id: string
 }
 
-const allAnime = animeData as AnimeRecord[]
+type OverridesType = Record<string, Partial<AnimeFields>>
+const overrides = animeOverrideData as OverridesType
+
+const allAnime = (animeData as AnimeRecord[]).map(anime => {
+  const manualData = overrides[anime.id]
+
+  if (manualData) {
+    return {
+      ...anime,
+      fields: {
+        ...anime.fields,
+        ...manualData
+      }
+    }
+  }
+
+  return anime
+})
 
 const progressMap: Record<string, string> = {
   '1': '想看',
@@ -83,6 +102,7 @@ const getRecommendBadge = (status?: string) => {
 const animeForClient = allAnime.map((anime) => {
   return {
     id: anime.id,
+    studio: anime.fields.工作室,
     title: anime.fields.番剧名,
     tags: anime.fields.标签?.join(', ') ?? '无标签',
     progress: progressMap[anime.fields.观看进度 || '3'] || '看过',
@@ -94,18 +114,10 @@ const animeForClient = allAnime.map((anime) => {
     links: anime.fields.链接 || {}
   }
 })
-
-// 根据需要添加侧边栏导航，如果没有可以删除
-const headings = [
-  { depth: 2, slug: '看过', text: '看过' },
-  { depth: 2, slug: '在看', text: '在看' },
-  { depth: 2, slug: '想看', text: '想看' }
-]
 ---
 
 <CommonPage
   title='番剧'
-  {headings}
   info={{ slug: '/library/anime', hideComment: true }}
   highlightColor="#ec82af"
 >
@@ -115,7 +127,7 @@ const headings = [
 
   <div class='mb-8 flex flex-wrap items-center gap-6 text-sm text-muted-foreground'>
     <span class='flex items-center gap-2'>
-      <span class='inline-flex h-4 w-4 items-center justify-center text-pink-400'>
+      <span class='inline-flex h-4 w-4 items-center justify-center text-rose-400'>
         <svg
           viewBox='0 0 24 24'
           fill='none'
@@ -179,18 +191,20 @@ const headings = [
     <div class="flex flex-col gap-4">
       <div class="flex items-center gap-2 flex-wrap">
         <span class="text-xs text-muted-foreground uppercase tracking-wide w-12">进度</span>
-        {progressStatuses.map((status) => (
+        {progressStatuses.map((comment) => (
           <button
             type="button"
-            data-filter-progress={status}
-            data-active-class="bg-pink-500 text-white border-pink-500 dark:bg-pink-600 dark:border-pink-600"
-            data-inactive-class="bg-transparent text-muted-foreground border-transparent hover:bg-pink-500/10 hover:border-pink-500/50 hover:text-pink-500"
+            data-filter-progress={comment}
+            data-active-class="bg-rose-400 text-white border-rose-400 dark:bg-rose-200 dark:text-rose-950 dark:border-rose-200"
+            data-inactive-class="bg-transparent text-slate-700 border-transparent hover:bg-rose-500/10 hover:border-rose-500/50 hover:text-rose-700 dark:text-slate-200 dark:hover:text-rose-300"
             class={cn(
               "px-3 py-1 rounded-md text-xs transition-all duration-200 border",
-              status === "全部" ? "bg-pink-500 text-white border-pink-500 dark:bg-pink-600 dark:border-pink-600" : "bg-transparent text-muted-foreground border-transparent hover:bg-pink-500/10 hover:border-pink-500/50 hover:text-pink-500",
+              comment === "全部"
+                ? "bg-rose-400 text-white border-rose-400 dark:bg-rose-200 dark:text-rose-950 dark:border-rose-200"
+                : "bg-transparent text-slate-700 border-transparent hover:bg-rose-500/10 hover:border-rose-500/50 hover:text-rose-700 dark:text-slate-200 dark:hover:text-rose-300",
             )}
           >
-            {status}
+            {comment}
           </button>
         ))}
       </div>
@@ -201,11 +215,13 @@ const headings = [
           <button
             type="button"
             data-filter-status={status}
-            data-active-class="bg-pink-500 text-white border-pink-500 dark:bg-pink-600 dark:border-pink-600"
-            data-inactive-class="bg-transparent text-muted-foreground border-transparent hover:bg-pink-500/10 hover:border-pink-500/50 hover:text-pink-500"
+            data-active-class="bg-rose-400 text-white border-rose-400 dark:bg-rose-200 dark:text-rose-950 dark:border-rose-200"
+            data-inactive-class="bg-transparent text-slate-700 border-transparent hover:bg-rose-500/10 hover:border-rose-500/50 hover:text-rose-700 dark:text-slate-200 dark:hover:text-rose-300"
             class={cn(
               "px-3 py-1 rounded-md text-xs transition-all duration-200 border",
-              status === "全部" ? "bg-pink-500 text-white border-pink-500 dark:bg-pink-600 dark:border-pink-600" : "bg-transparent text-muted-foreground border-transparent hover:bg-pink-500/10 hover:border-pink-500/50 hover:text-pink-500",
+              status === "全部"
+                ? "bg-rose-400 text-white border-rose-400 dark:bg-rose-200 dark:text-rose-950 dark:border-rose-200"
+                : "bg-transparent text-slate-700 border-transparent hover:bg-rose-500/10 hover:border-rose-500/50 hover:text-rose-700 dark:text-slate-200 dark:hover:text-rose-300",
             )}
           >
             {status}
@@ -220,11 +236,13 @@ const headings = [
             <button
               type="button"
               data-filter-tag={tag}
-              data-active-class="bg-pink-500 text-white border-pink-500 dark:bg-pink-600 dark:border-pink-600"
-              data-inactive-class="bg-transparent text-muted-foreground border-transparent hover:bg-pink-500/10 hover:border-pink-500/50 hover:text-pink-500"
+              data-active-class="bg-rose-400 text-white border-rose-400 dark:bg-rose-200 dark:text-rose-950 dark:border-rose-200"
+              data-inactive-class="bg-transparent text-slate-700 border-transparent hover:bg-rose-500/10 hover:border-rose-500/50 hover:text-rose-700 dark:text-slate-200 dark:hover:text-rose-300"
               class={cn(
-                "px-2.5 py-1 rounded-md text-xs transition-all duration-200 border",
-                tag === "全部" ? "bg-pink-500 text-white border-pink-500 dark:bg-pink-600 dark:border-pink-600" : "bg-transparent text-muted-foreground border-transparent hover:bg-pink-500/10 hover:border-pink-500/50 hover:text-pink-500",
+                "px-3 py-1 rounded-md text-xs transition-all duration-200 border",
+                tag === "全部"
+                  ? "bg-rose-400 text-white border-rose-400 dark:bg-rose-200 dark:text-rose-950 dark:border-rose-200"
+                  : "bg-transparent text-slate-700 border-transparent hover:bg-rose-500/10 hover:border-rose-500/50 hover:text-rose-700 dark:text-slate-200 dark:hover:text-rose-300",
               )}
             >
               {tag}
@@ -266,7 +284,7 @@ const headings = [
                   data-title={anime.fields.番剧名.toLowerCase()}
                   class='group flex h-full w-full cursor-pointer flex-col text-left focus:outline-none'
                 >
-                  <div class='relative mb-3 aspect-[3/4] w-full overflow-hidden rounded-lg border border-transparent bg-muted/30 shadow-sm transition-all duration-300 group-hover:-translate-y-1 group-hover:border-pink-500/20 group-hover:shadow-xl'>
+                  <div class='relative mb-3 aspect-[3/4] w-full overflow-hidden rounded-lg border border-transparent bg-muted/30 shadow-sm transition-all duration-300 group-hover:-translate-y-1 group-hover:border-rose-500/20 group-hover:shadow-xl'>
                     {coverUrl ? (
                       <img
                         src={coverUrl}
@@ -277,7 +295,7 @@ const headings = [
                         class='h-full w-full object-cover transition-transform duration-500 group-hover:scale-105'
                       />
                     ) : (
-                      <div class='flex h-full w-full items-center justify-center bg-gradient-to-br from-pink-500/20 via-pink-500/10 to-transparent p-3'>
+                      <div class='flex h-full w-full items-center justify-center bg-gradient-to-br from-rose-500/20 via-rose-500/10 to-transparent p-3'>
                         <p class='line-clamp-4 text-center text-xs font-semibold text-foreground'>
                           {anime.fields.番剧名}
                         </p>
@@ -311,14 +329,25 @@ const headings = [
                   </div>
 
                   <div class='flex flex-1 flex-col space-y-1.5'>
-                    <h3 class='line-clamp-2 text-sm font-medium leading-snug text-foreground transition-colors group-hover:text-pink-500'>
+                    <h3 class='line-clamp-1 text-sm font-medium leading-snug text-foreground transition-colors group-hover:text-rose-400'>
                       {anime.fields.番剧名}
                     </h3>
+
+                    {anime.fields.工作室 ? (
+                      <p class='text-xs text-muted-foreground line-clamp-1'>
+                        {anime.fields.工作室}
+                      </p>
+                    ) : (
+                      <p class='text-xs text-transparent' aria-hidden='true'>
+                        &nbsp;
+                      </p>
+                    )}
+
                     {displayTags.length > 0 ? (
                       <div class='mt-auto flex flex-wrap gap-1.5 pt-1'>
                         {displayTags.map((tag) => (
-                          <span class='rounded bg-muted/80 px-1.5 py-0.5 text-[10px] text-muted-foreground transition-colors group-hover:bg-pink-500/10 group-hover:text-pink-600 dark:group-hover:text-pink-400'>
-                            {tag}
+                          <span class='rounded bg-muted/80 px-1.5 py-0.5 text-[10px] text-muted-foreground transition-colors'>
+                          {tag}
                           </span>
                         ))}
                       </div>
@@ -337,26 +366,20 @@ const headings = [
     }
   </div>
 
-  <div class='hidden py-16 text-center' data-empty-state>
-    <span
-      class='mx-auto mb-4 inline-flex h-12 w-12 items-center justify-center text-muted-foreground/30'
-    >
-      <svg
-        viewBox='0 0 24 24'
-        fill='none'
-        stroke='currentColor'
-        stroke-width='2'
-        stroke-linecap='round'
-        stroke-linejoin='round'
-        class='h-12 w-12'
-      >
-        <circle cx='12' cy='12' r='10'></circle>
-        <line x1='8' y1='9' x2='8.01' y2='9'></line>
-        <line x1='16' y1='9' x2='16.01' y2='9'></line>
-        <path d='M16 16s-1.5-2-4-2-4 2-4 2'></path>
+  <div class="text-center py-16 hidden" data-empty-state>
+    <span class="inline-flex h-12 w-12 items-center justify-center text-muted-foreground/30 mx-auto mb-4">
+      <svg viewBox="0 0 24 24" aria-hidden="true" class="h-12 w-12">
+        <path
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          d="M4 7h16a2 2 0 0 1 2 2v11a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V9a2 2 0 0 1 2-2z M17 2L12 7L7 2 M7 13v3 M17 13v3"
+        />
       </svg>
     </span>
-    <p class='text-muted-foreground'>没有找到匹配的番剧，换个筛选条件试试看？</p>
+    <p class="text-muted-foreground">没有找到匹配的番剧</p>
   </div>
 
   <div
@@ -400,7 +423,7 @@ const headings = [
             class='hidden h-full w-full object-cover'
           />
           <div
-            class='flex h-full w-full items-center justify-center bg-gradient-to-br from-pink-500/20 via-pink-500/10 to-transparent p-3'
+            class='flex h-full w-full items-center justify-center bg-gradient-to-br from-rose-500/20 via-rose-500/10 to-transparent p-3'
             data-modal-cover-fallback
           >
             <p class='text-center text-xs font-semibold text-foreground' data-modal-cover-title></p>
@@ -409,10 +432,10 @@ const headings = [
 
         <div class='min-w-0 flex-1 py-1'>
           <h2 class='mb-3 text-xl font-bold leading-tight text-foreground' data-modal-title></h2>
-
+          <p class="text-sm text-muted-foreground mb-3" data-modal-studio></p>
           <div class='mb-4 flex flex-wrap gap-2'>
             <span
-              class='rounded-md bg-pink-100 px-2 py-1 text-xs text-xs dark:bg-muted dark:text-muted-foreground'
+              class='rounded-md bg-rose-100 px-2 py-1 text-xs dark:bg-muted dark:text-muted-foreground'
               data-modal-progress></span>
             <span class='rounded-md px-2 py-1 text-xs' data-modal-status></span>
             <span
@@ -455,7 +478,7 @@ const headings = [
               fill='none'
               stroke='currentColor'
               stroke-width='2'
-              class='h-4 w-4 text-pink-500'
+              class='h-4 w-4 text-rose-400'
               ><path d='M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z'></path></svg
             >
             我的短评
@@ -578,7 +601,7 @@ const headings = [
         })
 
         if (emptyState) {
-          emptyState.classList.toggle('hidden', totalVisible === 0)
+          emptyState.classList.toggle("hidden", totalVisible !== 0);
         }
       }
 
@@ -598,6 +621,7 @@ const headings = [
         }
 
         setEl('[data-modal-title]', anime.title || '未知番剧')
+        setEl("[data-modal-studio]", anime.studio || "", true);
         setEl('[data-modal-progress]', anime.progress || '未知', true)
         setEl('[data-modal-finished-text]', anime.finished || '')
         modal.querySelector('[data-modal-finished]')?.classList.toggle('hidden', !anime.finished)
@@ -690,9 +714,8 @@ const headings = [
             },
             {
               id: 'bilibili',
-              name: '哔哩哔哩',
-              classes:
-                'bg-[#F4F4F4] text-[#FB7299] hover:bg-[#E7E7E7] dark:bg-[#FB7299]/20 dark:text-[#FB7299]'
+              name: 'Bilibili 哔哩哔哩',
+              classes: 'bg-[#E5F6FD] text-[#00A1D6] hover:bg-[#D0EEFA] dark:bg-[#00A1D6]/20 dark:text-[#4ABDE8] border border-[#00A1D6]/20'
             }
           ]
           const animeLinks = anime.links || {}
