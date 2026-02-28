@@ -48,11 +48,11 @@ const getCoverUrl = (book: BookRecord): string | null => {
 const getRecommendBadge = (status?: string) => {
   switch (status) {
     case "推荐":
-      return { icon: "ThumbsUp", className: "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400" }
+      return { icon: "ThumbsUp", className: "bg-green-100 text-green-700 dark:bg-green-900/50 dark:text-green-400" }
     case "中庸":
-      return { icon: "Minus", className: "bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400" }
+      return { icon: "Minus", className: "bg-yellow-100 text-yellow-700 dark:bg-yellow-900/50 dark:text-yellow-400" }
     case "不行":
-      return { icon: "ThumbsDown", className: "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400" }
+      return { icon: "ThumbsDown", className: "bg-red-100 text-red-700 dark:bg-red-900/50 dark:text-red-400" }
     default:
       return null
   }
@@ -259,11 +259,25 @@ const booksForClient = allBooks.map((book) => {
     data-bookshelf-modal
     aria-hidden="true"
   >
-    <div class="absolute inset-0 bg-black/50 opacity-0 transition-opacity duration-200" data-bookshelf-backdrop></div>
+    <div
+      class='absolute inset-0 bg-black/50 opacity-0 backdrop-blur-sm transition-opacity duration-200'
+      data-bookshelf-backdrop
+    >
+    </div>
+
     <div
       class="relative w-full max-w-2xl max-h-[85vh] overflow-hidden flex flex-col bg-background border border-border rounded-2xl shadow-2xl opacity-0 scale-95 transition-all duration-200"
       data-bookshelf-panel
     >
+      <div class="absolute inset-0 z-0 pointer-events-none hidden" data-modal-bg-wrap>
+        <img
+          data-modal-bg
+          alt=""
+          aria-hidden="true"
+          class="h-full w-full object-cover opacity-[0.15] dark:opacity-[0.15] [mask-image:linear-gradient(to_bottom_left,black_0%,transparent_70%)]"
+        />
+      </div>
+
       <button
         type="button"
         class="absolute right-4 top-4 text-muted-foreground hover:text-foreground"
@@ -290,7 +304,12 @@ const booksForClient = allBooks.map((book) => {
 
         <div class="flex-1 min-w-0">
           <h2 class="text-xl font-bold text-foreground mb-2" data-modal-title></h2>
-          <p class="text-sm text-muted-foreground mb-3" data-modal-authors></p>
+          <p class="text-sm text-muted-foreground mb-3 font-medium flex items-center gap-1.5" data-modal-authors>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-3.5 h-3.5 opacity-70">
+              <path d="M20.24 12.24a6 6 0 0 0-8.49-8.49L5 10.5V19h8.5z M16 8L2 22 M17.5 15H9" />
+            </svg>
+            <span data-modal-authors-text></span>
+          </p>
           <div class="flex flex-wrap gap-2">
             <span class="px-2 py-1 text-xs rounded-md bg-muted text-muted-foreground" data-modal-category></span>
             <span class="px-2 py-1 text-xs rounded-md" data-modal-status></span>
@@ -453,7 +472,18 @@ const booksForClient = allBooks.map((book) => {
         };
 
         setEl("[data-modal-title]", book.title || "未知书名");
-        setEl("[data-modal-authors]", book.authors || "", true);
+
+        const authorsContainer = modal.querySelector("[data-modal-authors]");
+        const authorsText = modal.querySelector("[data-modal-authors-text]");
+        if (authorsContainer && authorsText) {
+          if (book.authors) {
+            authorsText.textContent = book.authors;
+            authorsContainer.classList.remove("hidden");
+          } else {
+            authorsContainer.classList.add("hidden");
+          }
+        }
+
         setEl("[data-modal-category]", book.category || "未分类", true);
         setEl("[data-modal-finished-text]", book.finished || "");
         modal.querySelector("[data-modal-finished]")?.classList.toggle("hidden", !book.finished);
@@ -475,16 +505,27 @@ const booksForClient = allBooks.map((book) => {
         const coverEl = modal.querySelector("[data-modal-cover]");
         const fallbackEl = modal.querySelector("[data-modal-cover-fallback]");
         const coverTitle = modal.querySelector("[data-modal-cover-title]");
+
+        const bgWrap = modal.querySelector('[data-modal-bg-wrap]')
+        const bgEl = modal.querySelector('[data-modal-bg]')
+
         if (coverEl && fallbackEl && coverTitle) {
           if (book.cover) {
-            coverEl.src = book.cover;
-            coverEl.classList.remove("hidden");
-            fallbackEl.classList.add("hidden");
+            coverEl.src = book.cover
+            coverEl.classList.remove('hidden')
+            fallbackEl.classList.add('hidden')
+
+            if (bgWrap && bgEl) {
+              bgEl.src = book.cover
+              bgWrap.classList.remove('hidden')
+            }
           } else {
-            coverEl.removeAttribute("src");
-            coverEl.classList.add("hidden");
-            coverTitle.textContent = book.title || "";
-            fallbackEl.classList.remove("hidden");
+            coverEl.removeAttribute('src')
+            coverEl.classList.add('hidden')
+            coverTitle.textContent = book.title || ''
+            fallbackEl.classList.remove('hidden')
+
+            if (bgWrap) bgWrap.classList.add('hidden')
           }
         }
 

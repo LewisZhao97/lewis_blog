@@ -1,79 +1,74 @@
 ﻿---
 import { cn } from '@/libs/utils.ts'
-import animeData from '@/public/data/animes.json'
-import animeOverrideData from '@/public/data/anime-overrides.json'
+import gamesOverrideData from '@/public/data/games-overrides.json'
+import gamesData from '@/public/data/games.json'
 
 import CommonPage from '@/layouts/CommonPage.astro'
 
-interface AnimeFields {
-  番剧名: string
-  工作室?: string
+interface GameFields {
+  游戏名: string
+  开发商?: string
   封面?: string
-  完成观看时期?: string
+  游玩时长?: string
   短评?: string
   简介?: string
   推荐状态?: '推荐' | '中庸' | '不行' | '未评分' | string
-  观看进度?: string // "1": 想看, "2": 在看, "3": 看过
+  游玩进度?: string // "想玩", "在玩", "玩过"
   标签?: string[]
   链接?: Record<string, string>
 }
 
-interface AnimeRecord {
-  fields: AnimeFields
+interface GameRecord {
+  fields: GameFields
   id: string
 }
 
-type OverridesType = Record<string, Partial<AnimeFields>>
-const overrides = animeOverrideData as OverridesType
+type OverridesType = Record<string, Partial<GameFields>>
+const overrides = gamesOverrideData as OverridesType
 
-const allAnime = (animeData as AnimeRecord[]).map(anime => {
-  const manualData = overrides[anime.id]
+const allGames = (gamesData as GameRecord[]).map((game) => {
+  const manualData = overrides[game.id]
 
   if (manualData) {
     return {
-      ...anime,
+      ...game,
       fields: {
-        ...anime.fields,
+        ...game.fields,
         ...manualData
       }
     }
   }
 
-  return anime
+  return game
 })
 
-const progressMap: Record<string, string> = {
-  '1': '想看',
-  '2': '在看',
-  '3': '看过'
-}
-
-const allTags = Array.from(new Set(allAnime.flatMap((a) => a.fields.标签 || []))).sort()
+// 从所有数据中提取不重复的标签
+const allTags = Array.from(new Set(allGames.flatMap((a) => a.fields.标签 || []))).sort()
 const tagsList = ['全部', ...allTags]
 
-const progressStatuses = ['全部', '看过', '在看', '想看']
+const progressStatuses = ['全部', '玩过', '在玩', '想玩']
 const recommendStatuses = ['全部', '推荐', '中庸', '不行', '未评分']
 
-// 按观看进度将番剧分组 (作为页面的大版块)
-const animeByProgress = allAnime.reduce<Record<string, AnimeRecord[]>>(
-  (acc, anime) => {
-    const prog = progressMap[anime.fields.观看进度 || '3'] || '看过'
+// 按游玩进度将游戏分组
+const gamesByProgress = allGames.reduce<Record<string, GameRecord[]>>(
+  (acc, game) => {
+    const prog = game.fields.游玩进度 || '玩过'
     if (!acc[prog]) acc[prog] = []
-    acc[prog].push(anime)
+    acc[prog].push(game)
     return acc
   },
-  { 看过: [], 在看: [], 想看: [] }
+  { 玩过: [], 在玩: [], 想玩: [] }
 )
 
 const stats = {
-  total: allAnime.length,
-  recommended: allAnime.filter((b) => b.fields.推荐状态 === "推荐").length,
-  watched: animeByProgress['看过']?.length || 0,
+  total: allGames.length,
+  recommended: allGames.filter((b) => b.fields.推荐状态 === '推荐').length,
+  played: gamesByProgress['玩过']?.length || 0,
   tagsCount: allTags.length
 }
 
-const getCoverUrl = (anime: AnimeRecord): string | null => {
-  return anime.fields.封面 || null
+const getCoverUrl = (game: GameRecord): string | null => {
+  return game.fields.封面 || null
 }
 
 const getRecommendBadge = (status?: string) => {
@@ -99,35 +94,35 @@ const getRecommendBadge = (status?: string) => {
 }
 
 // 传递给客户端弹窗的数据
-const animeForClient = allAnime.map((anime) => {
+const gameForClient = allGames.map((game) => {
   return {
-    id: anime.id,
-    studio: anime.fields.工作室,
-    title: anime.fields.番剧名,
-    tags: anime.fields.标签?.join(', ') ?? '无标签',
-    progress: progressMap[anime.fields.观看进度 || '3'] || '看过',
-    status: anime.fields.推荐状态 ?? '未评分',
-    cover: getCoverUrl(anime) ?? '',
-    review: anime.fields.短评 ?? '',
-    description: anime.fields.简介 ?? '',
-    finished: anime.fields.完成观看时期 ?? '',
-    links: anime.fields.链接 || {}
+    id: game.id,
+    developer: game.fields.开发商,
+    title: game.fields.游戏名,
+    tags: game.fields.标签?.join(', ') ?? '无标签',
+    progress: game.fields.游玩进度 || '玩过',
+    status: game.fields.推荐状态 ?? '未评分',
+    cover: getCoverUrl(game) ?? '',
+    review: game.fields.短评 ?? '',
+    description: game.fields.简介 ?? '',
+    playtime: game.fields.游玩时长 ?? '',
+    links: game.fields.链接 || {}
   }
 })
 ---
 
 <CommonPage
-  title='番剧'
-  info={{ slug: '/library/anime', hideComment: true }}
-  highlightColor="#ec82af"
+  title='游戏'
+  info={{ slug: '/library/games', hideComment: true }}
+  highlightColor="#b18ff7"
 >
   <div class='mb-10'>
-    <p class='text-lg text-muted-foreground'>二次元的浪漫与幻想，属于光影与动画的记忆。</p>
+    <p class='text-lg text-muted-foreground'>第九艺术的魅力，沉浸于无数个平行世界的冒险。</p>
   </div>
 
   <div class='mb-8 flex flex-wrap items-center gap-6 text-sm text-muted-foreground'>
     <span class='flex items-center gap-2'>
-      <span class='inline-flex h-4 w-4 items-center justify-center text-rose-400'>
+      <span class='inline-flex h-4 w-4 items-center justify-center text-purple-500'>
         <svg
           viewBox='0 0 24 24'
           fill='none'
@@ -136,11 +131,15 @@ const animeForClient = allAnime.map((anime) => {
           stroke-linecap='round'
           stroke-linejoin='round'
           class='h-4 w-4'
-          ><rect x='2' y='7' width='20' height='15' rx='2' ry='2'></rect><polyline
-            points='17 2 12 7 7 2'></polyline><line x1="7" y1="13" x2="7" y2="16"></line><line x1="17" y1="13" x2="17" y2="16"></line></svg
+          ><rect x='2' y='6' width='20' height='12' rx='2' ry='2'></rect><path d='M6 12h4'
+          ></path><path d='M8 10v4'></path><line x1='15' y1='13' x2='15.01' y2='13'></line><line
+            x1='18'
+            y1='11'
+            x2='18.01'
+            y2='11'></line></svg
         >
       </span>
-      <span class='font-medium text-foreground'>{stats.watched}</span> 部已看
+      <span class='font-medium text-foreground'>{stats.played}</span> 款玩过
     </span>
 
     <span class='flex items-center gap-2'>
@@ -149,7 +148,7 @@ const animeForClient = allAnime.map((anime) => {
           <path fill='currentColor' d='M2 10h6.5L10 3l4 7h6l-5 6 2.5 6-5-4-5 4L9 16z'></path>
         </svg>
       </span>
-      <span class='font-medium text-foreground'>{stats.recommended}</span> 部推荐
+      <span class='font-medium text-foreground'>{stats.recommended}</span> 款推荐
     </span>
 
     <span class='flex items-center gap-2'>
@@ -181,123 +180,143 @@ const animeForClient = allAnime.map((anime) => {
         </svg>
       </span>
       <input
-        data-anime-search
+        data-game-search
         type='text'
-        placeholder='搜索番剧名或标签...'
+        placeholder='搜索游戏名或标签...'
         class='w-full rounded-lg border border-border bg-background py-2 pl-10 pr-4 text-sm text-foreground transition-all placeholder:text-muted-foreground focus:border-primary/50 focus:outline-none focus:ring-2 focus:ring-primary/20'
       />
     </div>
 
-    <div class="flex flex-col gap-4">
-      <div class="flex items-center gap-2 flex-wrap">
-        <span class="text-xs text-muted-foreground uppercase tracking-wide w-12">进度</span>
-        {progressStatuses.map((comment) => (
-          <button
-            type="button"
-            data-filter-progress={comment}
-            data-active-class="bg-rose-400 text-white border-rose-400 dark:bg-rose-200 dark:text-rose-950 dark:border-rose-200"
-            data-inactive-class="bg-transparent text-slate-700 border-transparent hover:bg-rose-500/10 hover:border-rose-500/50 hover:text-rose-700 dark:text-slate-200 dark:hover:text-rose-300"
-            class={cn(
-              "px-3 py-1 rounded-md text-xs transition-all duration-200 border",
-              comment === "全部"
-                ? "bg-rose-400 text-white border-rose-400 dark:bg-rose-200 dark:text-rose-950 dark:border-rose-200"
-                : "bg-transparent text-slate-700 border-transparent hover:bg-rose-500/10 hover:border-rose-500/50 hover:text-rose-700 dark:text-slate-200 dark:hover:text-rose-300",
-            )}
-          >
-            {comment}
-          </button>
-        ))}
+    <div class='flex flex-col gap-4'>
+      <div class='flex flex-wrap items-center gap-2'>
+        <span class='w-12 text-xs uppercase tracking-wide text-muted-foreground'>进度</span>
+        {
+          progressStatuses.map((comment) => (
+            <button
+              type='button'
+              data-filter-progress={comment}
+              data-active-class='bg-purple-500 text-white border-purple-500 dark:bg-purple-300 dark:text-purple-950 dark:border-purple-300'
+              data-inactive-class='bg-transparent text-slate-700 border-transparent hover:bg-purple-500/10 hover:border-purple-500/50 hover:text-purple-700 dark:text-slate-200 dark:hover:text-purple-300'
+              class={cn(
+                'rounded-md border px-3 py-1 text-xs transition-all duration-200',
+                comment === '全部'
+                  ? 'border-purple-500 bg-purple-500 text-white dark:border-purple-300 dark:bg-purple-300 dark:text-purple-950'
+                  : 'border-transparent bg-transparent text-slate-700 hover:border-purple-500/50 hover:bg-purple-500/10 hover:text-purple-700 dark:text-slate-200 dark:hover:text-purple-300'
+              )}
+            >
+              {comment}
+            </button>
+          ))
+        }
       </div>
 
-      <div class="flex items-center gap-2 flex-wrap">
-        <span class="text-xs text-muted-foreground uppercase tracking-wide w-12">评价</span>
-        {recommendStatuses.map((status) => (
-          <button
-            type="button"
-            data-filter-status={status}
-            data-active-class="bg-rose-400 text-white border-rose-400 dark:bg-rose-200 dark:text-rose-950 dark:border-rose-200"
-            data-inactive-class="bg-transparent text-slate-700 border-transparent hover:bg-rose-500/10 hover:border-rose-500/50 hover:text-rose-700 dark:text-slate-200 dark:hover:text-rose-300"
-            class={cn(
-              "px-3 py-1 rounded-md text-xs transition-all duration-200 border",
-              status === "全部"
-                ? "bg-rose-400 text-white border-rose-400 dark:bg-rose-200 dark:text-rose-950 dark:border-rose-200"
-                : "bg-transparent text-slate-700 border-transparent hover:bg-rose-500/10 hover:border-rose-500/50 hover:text-rose-700 dark:text-slate-200 dark:hover:text-rose-300",
-            )}
-          >
-            {status}
-          </button>
-        ))}
+      <div class='flex flex-wrap items-center gap-2'>
+        <span class='w-12 text-xs uppercase tracking-wide text-muted-foreground'>评价</span>
+        {
+          recommendStatuses.map((status) => (
+            <button
+              type='button'
+              data-filter-status={status}
+              data-active-class='bg-purple-500 text-white border-purple-500 dark:bg-purple-300 dark:text-purple-950 dark:border-purple-300'
+              data-inactive-class='bg-transparent text-slate-700 border-transparent hover:bg-purple-500/10 hover:border-purple-500/50 hover:text-purple-700 dark:text-slate-200 dark:hover:text-purple-300'
+              class={cn(
+                'rounded-md border px-3 py-1 text-xs transition-all duration-200',
+                status === '全部'
+                  ? 'border-purple-500 bg-purple-500 text-white dark:border-purple-300 dark:bg-purple-300 dark:text-purple-950'
+                  : 'border-transparent bg-transparent text-slate-700 hover:border-purple-500/50 hover:bg-purple-500/10 hover:text-purple-700 dark:text-slate-200 dark:hover:text-purple-300'
+              )}
+            >
+              {status}
+            </button>
+          ))
+        }
       </div>
 
       <div class="flex items-start gap-2 flex-wrap">
         <span class="text-xs text-muted-foreground uppercase tracking-wide w-12 mt-1.5">标签</span>
-        <div class="flex-1 flex flex-wrap gap-2">
-          {tagsList.map((tag) => (
-            <button
-              type="button"
-              data-filter-tag={tag}
-              data-active-class="bg-rose-400 text-white border-rose-400 dark:bg-rose-200 dark:text-rose-950 dark:border-rose-200"
-              data-inactive-class="bg-transparent text-slate-700 border-transparent hover:bg-rose-500/10 hover:border-rose-500/50 hover:text-rose-700 dark:text-slate-200 dark:hover:text-rose-300"
-              class={cn(
-                "px-3 py-1 rounded-md text-xs transition-all duration-200 border",
-                tag === "全部"
-                  ? "bg-rose-400 text-white border-rose-400 dark:bg-rose-200 dark:text-rose-950 dark:border-rose-200"
-                  : "bg-transparent text-slate-700 border-transparent hover:bg-rose-500/10 hover:border-rose-500/50 hover:text-rose-700 dark:text-slate-200 dark:hover:text-rose-300",
-              )}
-            >
-              {tag}
-            </button>
-          ))}
+        <div class="flex-1 flex flex-col items-center">
+          <div
+            data-tags-container
+            class="w-full flex flex-wrap gap-2 overflow-hidden transition-[max-height] duration-500 ease-in-out"
+            style="max-height: 96px; mask-image: linear-gradient(to bottom, black 70%, transparent 100%); -webkit-mask-image: linear-gradient(to bottom, black 70%, transparent 100%);"
+          >
+            {tagsList.map((tag) => (
+              <button
+                type="button"
+                data-filter-tag={tag}
+                data-active-class="bg-purple-500 text-white border-purple-500 dark:bg-purple-300 dark:text-purple-950 dark:border-purple-300"
+                data-inactive-class="bg-transparent text-slate-700 border-transparent hover:bg-purple-500/10 hover:border-purple-500/50 hover:text-purple-700 dark:text-slate-200 dark:hover:text-purple-300"
+                class={cn(
+                  "px-3 py-1 rounded-md text-xs transition-all duration-200 border",
+                  tag === "全部"
+                    ? "bg-purple-500 text-white border-purple-500 dark:bg-purple-300 dark:text-purple-950 dark:border-purple-300"
+                    : "bg-transparent text-slate-700 border-transparent hover:bg-purple-500/10 hover:border-purple-500/50 hover:text-purple-700 dark:text-slate-200 dark:hover:text-purple-300",
+                )}
+              >
+                {tag}
+              </button>
+            ))}
+          </div>
+
+          <button
+            type="button"
+            data-tags-toggle
+            class="mt-2 flex items-center gap-1 px-3 py-1 rounded-full bg-background/50 border border-border/50 text-xs text-muted-foreground hover:text-purple-500 hover:border-purple-500/30 transition-all shadow-sm backdrop-blur-sm -translate-y-1 -translate-x-6"
+          >
+            <span data-tags-toggle-text>展开全部</span>
+            <svg data-tags-toggle-icon viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-3 h-3 transition-transform duration-300">
+              <polyline points="6 9 12 15 18 9"></polyline>
+            </svg>
+          </button>
         </div>
       </div>
     </div>
   </div>
 
-  <div class='space-y-12' data-anime-sections>
+  <div class='space-y-12' data-game-sections>
     {
-      Object.entries(animeByProgress).map(([progress, animes]) => (
+      Object.entries(gamesByProgress).map(([progress, games]) => (
         <section data-progress-section={progress} id={progress}>
           <div class='mb-6 flex items-baseline gap-3'>
             <h2 class='text-lg font-semibold text-foreground'>{progress}</h2>
             <span class='translate-y-[-1px] text-sm text-muted-foreground' data-progress-count>
-              ({animes.length})
+              ({games.length})
             </span>
             <div class='h-px flex-1 -translate-y-[-1px] self-center bg-border/50' />
           </div>
 
           <div class='grid grid-cols-2 gap-5 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6'>
-            {animes.map((anime) => {
-              const badge = getRecommendBadge(anime.fields.推荐状态)
-              const coverUrl = getCoverUrl(anime)
-              const tags = anime.fields.标签 || []
-              // 卡片上最多显示2个标签，避免太长
+            {games.map((game) => {
+              const badge = getRecommendBadge(game.fields.推荐状态)
+              const coverUrl = getCoverUrl(game)
+              const tags = game.fields.标签 || []
               const displayTags = tags.slice(0, 2)
 
               return (
                 <button
                   type='button'
-                  data-anime-card
-                  data-anime-id={anime.id}
+                  data-game-card
+                  data-game-id={game.id}
                   data-progress={progress}
-                  data-status={anime.fields.推荐状态 || '未评分'}
+                  data-status={game.fields.推荐状态 || '未评分'}
                   data-tags={tags.join(',')}
-                  data-title={anime.fields.番剧名.toLowerCase()}
+                  data-title={game.fields.游戏名.toLowerCase()}
                   class='group flex h-full w-full cursor-pointer flex-col text-left focus:outline-none'
                 >
-                  <div class='relative mb-3 aspect-[3/4] w-full overflow-hidden rounded-lg border border-transparent bg-muted/30 shadow-sm transition-all duration-300 group-hover:-translate-y-1 group-hover:border-rose-500/20 group-hover:shadow-xl'>
+                  <div class='relative mb-3 aspect-[3/4] w-full overflow-hidden rounded-lg border border-transparent bg-muted/30 shadow-sm transition-all duration-300 group-hover:-translate-y-1 group-hover:border-purple-500/20 group-hover:shadow-xl'>
                     {coverUrl ? (
                       <img
                         src={coverUrl}
-                        alt={anime.fields.番剧名}
+                        alt={game.fields.游戏名}
                         loading='lazy'
                         decoding='async'
                         referrerpolicy='no-referrer'
                         class='h-full w-full object-cover transition-transform duration-500 group-hover:scale-105'
                       />
                     ) : (
-                      <div class='flex h-full w-full items-center justify-center bg-gradient-to-br from-rose-500/20 via-rose-500/10 to-transparent p-3'>
+                      <div class='flex h-full w-full items-center justify-center bg-gradient-to-br from-purple-500/20 via-purple-500/10 to-transparent p-3'>
                         <p class='line-clamp-4 text-center text-xs font-semibold text-foreground'>
-                          {anime.fields.番剧名}
+                          {game.fields.游戏名}
                         </p>
                       </div>
                     )}
@@ -316,27 +335,25 @@ const animeForClient = allAnime.map((anime) => {
                     )}
 
                     <div class='absolute inset-0 flex flex-col justify-end bg-gradient-to-t from-black/95 via-black/60 to-transparent p-3 opacity-0 transition-opacity duration-300 group-hover:opacity-100'>
-                      {anime.fields.短评 ? (
+                      {game.fields.短评 ? (
                         <p class='line-clamp-4 text-xs leading-relaxed text-white/90'>
-                          {anime.fields.短评}
+                          {game.fields.短评}
                         </p>
-                      ) : anime.fields.简介 ? (
+                      ) : game.fields.简介 ? (
                         <p class='line-clamp-4 text-xs leading-relaxed text-white/80'>
-                          {anime.fields.简介}
+                          {game.fields.简介}
                         </p>
                       ) : null}
                     </div>
                   </div>
 
                   <div class='flex flex-1 flex-col space-y-1.5'>
-                    <h3 class='line-clamp-1 text-sm font-medium leading-snug text-foreground transition-colors group-hover:text-rose-400'>
-                      {anime.fields.番剧名}
+                    <h3 class='line-clamp-1 text-sm font-medium leading-snug text-foreground transition-colors group-hover:text-purple-500'>
+                      {game.fields.游戏名}
                     </h3>
 
-                    {anime.fields.工作室 ? (
-                      <p class='text-xs text-muted-foreground line-clamp-1'>
-                        {anime.fields.工作室}
-                      </p>
+                    {game.fields.开发商 ? (
+                      <p class='line-clamp-1 text-xs text-muted-foreground'>{game.fields.开发商}</p>
                     ) : (
                       <p class='text-xs text-transparent' aria-hidden='true'>
                         &nbsp;
@@ -347,7 +364,7 @@ const animeForClient = allAnime.map((anime) => {
                       <div class='mt-auto flex flex-wrap gap-1.5 pt-1'>
                         {displayTags.map((tag) => (
                           <span class='rounded bg-muted/80 px-1.5 py-0.5 text-[10px] text-muted-foreground transition-colors'>
-                          {tag}
+                            {tag}
                           </span>
                         ))}
                       </div>
@@ -366,35 +383,38 @@ const animeForClient = allAnime.map((anime) => {
     }
   </div>
 
-  <div class="text-center py-16 hidden" data-empty-state>
-    <span class="inline-flex h-12 w-12 items-center justify-center text-muted-foreground/30 mx-auto mb-4">
-      <svg viewBox="0 0 24 24" aria-hidden="true" class="h-12 w-12">
-        <path
-          fill="none"
-          stroke="currentColor"
-          stroke-width="2"
-          stroke-linecap="round"
-          stroke-linejoin="round"
-          d="M4 7h16a2 2 0 0 1 2 2v11a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V9a2 2 0 0 1 2-2z M17 2L12 7L7 2 M7 13v3 M17 13v3"
-        />
+  <div class='hidden py-16 text-center' data-empty-state>
+    <span
+      class='mx-auto mb-4 inline-flex h-12 w-12 items-center justify-center text-muted-foreground/30'
+    >
+      <svg
+        viewBox='0 0 24 24'
+        fill='none'
+        stroke='currentColor'
+        stroke-width='2'
+        stroke-linecap='round'
+        stroke-linejoin='round'
+        class='h-12 w-12'
+      >
+        <path d='M4 6h16a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2z M6 12h4 M8 10v4 M15 13h.01 M18 11h.01'></path>
       </svg>
     </span>
-    <p class="text-muted-foreground">没有找到匹配的番剧</p>
+    <p class='text-muted-foreground'>没有找到匹配的游戏</p>
   </div>
 
   <div
     class='fixed inset-0 z-[60] hidden items-center justify-center px-4'
-    data-anime-modal
+    data-game-modal
     aria-hidden='true'
   >
     <div
       class='absolute inset-0 bg-black/50 opacity-0 backdrop-blur-sm transition-opacity duration-200'
-      data-anime-backdrop
+      data-game-backdrop
     >
     </div>
     <div
       class='relative flex max-h-[85vh] w-full max-w-2xl scale-95 flex-col overflow-hidden rounded-2xl border border-border bg-background opacity-0 shadow-2xl transition-all duration-200'
-      data-anime-panel
+      data-game-panel
     >
       <div class="absolute inset-0 z-0 pointer-events-none hidden" data-modal-bg-wrap>
         <img
@@ -408,7 +428,7 @@ const animeForClient = allAnime.map((anime) => {
       <button
         type='button'
         class='absolute right-4 top-4 z-10 rounded-full bg-muted/50 p-1 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground'
-        data-anime-close
+        data-game-close
         aria-label='关闭'
       >
         <svg viewBox='0 0 24 24' aria-hidden='true' class='h-5 w-5'>
@@ -432,7 +452,7 @@ const animeForClient = allAnime.map((anime) => {
             class='hidden h-full w-full object-cover'
           />
           <div
-            class='flex h-full w-full items-center justify-center bg-gradient-to-br from-rose-500/20 via-rose-500/10 to-transparent p-3'
+            class='flex h-full w-full items-center justify-center bg-gradient-to-br from-purple-500/20 via-purple-500/10 to-transparent p-3'
             data-modal-cover-fallback
           >
             <p class='text-center text-xs font-semibold text-foreground' data-modal-cover-title></p>
@@ -441,20 +461,28 @@ const animeForClient = allAnime.map((anime) => {
 
         <div class='min-w-0 flex-1 py-1'>
           <h2 class='mb-3 text-xl font-bold leading-tight text-foreground' data-modal-title></h2>
-          <p class="text-sm text-muted-foreground mb-3 font-medium flex items-center gap-1.5 hidden" data-modal-studio>
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-3.5 h-3.5 opacity-70">
-              <path d="M12 22a10 10 0 1 1 10-10c0 2-2 3-3 3-1 0-1.5-1-2-1s-1 1-2 1c-2 0-3-2-3-2z M8 10h.01 M16 10h.01 M12 7h.01" />
-            </svg>
-            <span data-modal-studio-text></span>
+          <p
+            class='mb-3 flex hidden items-center gap-1.5 text-sm font-medium text-muted-foreground'
+            data-modal-developer
+          >
+              <svg
+                viewBox='0 0 24 24'
+                fill='none'
+                stroke='currentColor'
+                stroke-width='2'
+                class='h-3.5 w-3.5 opacity-70'
+                ><path d='M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5'></path></svg
+              >
+            <span data-modal-developer-text></span>
           </p>
           <div class='mb-4 flex flex-wrap gap-2'>
             <span
-              class='rounded-md bg-rose-100 px-2 py-1 text-xs dark:bg-muted dark:text-muted-foreground'
+              class='rounded-md bg-purple-100 px-2 py-1 text-xs dark:bg-muted dark:text-muted-foreground'
               data-modal-progress></span>
             <span class='rounded-md px-2 py-1 text-xs' data-modal-status></span>
             <span
               class='flex items-center gap-1 rounded-md bg-muted px-2 py-1 text-xs text-muted-foreground'
-              data-modal-finished
+              data-modal-playtime
             >
               <span class='inline-flex h-3 w-3 items-center justify-center'>
                 <svg
@@ -463,18 +491,11 @@ const animeForClient = allAnime.map((anime) => {
                   stroke='currentColor'
                   stroke-width='2'
                   class='h-3 w-3'
-                  ><rect x='3' y='4' width='18' height='18' rx='2' ry='2'></rect><line
-                    x1='16'
-                    y1='2'
-                    x2='16'
-                    y2='6'></line><line x1='8' y1='2' x2='8' y2='6'></line><line
-                    x1='3'
-                    y1='10'
-                    x2='21'
-                    y2='10'></line></svg
+                  ><circle cx='12' cy='12' r='10'></circle><polyline points='12 6 12 12 16 14'
+                  ></polyline></svg
                 >
               </span>
-              <span data-modal-finished-text></span>
+              <span data-modal-playtime-text></span>
             </span>
           </div>
 
@@ -492,7 +513,7 @@ const animeForClient = allAnime.map((anime) => {
               fill='none'
               stroke='currentColor'
               stroke-width='2'
-              class='h-4 w-4 text-rose-400'
+              class='h-4 w-4 text-purple-500'
               ><path d='M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z'></path></svg
             >
             我的短评
@@ -519,7 +540,7 @@ const animeForClient = allAnime.map((anime) => {
                 x2='8'
                 y2='17'></line><polyline points='10 9 9 9 8 9'></polyline></svg
             >
-            番剧简介
+            游戏简介
           </h3>
           <p
             class='whitespace-pre-wrap text-sm leading-relaxed text-muted-foreground'
@@ -533,35 +554,35 @@ const animeForClient = allAnime.map((anime) => {
 
   <script
     type='application/json'
-    id='anime-data'
-    set:html={JSON.stringify(animeForClient).replace(/</g, '\\u003c')}
+    id='game-data'
+    set:html={JSON.stringify(gameForClient).replace(/</g, '\\u003c')}
   />
 
   <script is:inline>
     ;(function () {
-      if (window.__anime_initialized) return
-      window.__anime_initialized = true
+      if (window.__game_initialized) return
+      window.__game_initialized = true
 
-      let animeMap = new Map()
+      let gameMap = new Map()
       let state = { tag: '全部', progress: '全部', status: '全部', query: '' }
 
       function initDOM() {
-        const dataTag = document.getElementById('anime-data')
+        const dataTag = document.getElementById('game-data')
         if (dataTag) {
-          const animes = JSON.parse(dataTag.textContent || '[]')
-          animeMap = new Map(animes.map((a) => [String(a.id), a]))
+          const games = JSON.parse(dataTag.textContent || '[]')
+          gameMap = new Map(games.map((g) => [String(g.id), g]))
         }
 
-        const modal = document.querySelector('[data-anime-modal]')
+        const modal = document.querySelector('[data-game-modal]')
         if (modal && modal.parentNode !== document.body) {
           document.body.appendChild(modal)
         }
+        initTagsToggle()
       }
 
       function updateFilterUI() {
         const up = (selector, stateVal) => {
           document.querySelectorAll(selector).forEach((btn) => {
-            // 这里用特殊处理，因为 selector 可能包含破折号
             const attrName = selector.replace(/\[|\]/g, '')
             const isActive = btn.getAttribute(attrName) === stateVal
             const activeClasses = (btn.getAttribute('data-active-class') || '')
@@ -582,12 +603,11 @@ const animeForClient = allAnime.map((anime) => {
 
       function applyFilters() {
         const query = state.query.trim().toLowerCase()
-        const cards = document.querySelectorAll('[data-anime-card]')
+        const cards = document.querySelectorAll('[data-game-card]')
         const sections = document.querySelectorAll('[data-progress-section]')
         const emptyState = document.querySelector('[data-empty-state]')
 
         cards.forEach((card) => {
-          // 标签处理：拆分以判断是否包含当前选中标签
           const tagsAttr = card.getAttribute('data-tags') || ''
           const tagsArray = tagsAttr ? tagsAttr.split(',') : []
           const progress = card.getAttribute('data-progress') || ''
@@ -597,7 +617,6 @@ const animeForClient = allAnime.map((anime) => {
           const matchTag = state.tag === '全部' || tagsArray.includes(state.tag)
           const matchProgress = state.progress === '全部' || progress === state.progress
           const matchStatus = state.status === '全部' || status === state.status
-          // 支持搜索名称或标签
           const matchQuery = !query || title.includes(query) || tagsAttr.includes(query)
 
           card.classList.toggle('hidden', !(matchTag && matchProgress && matchStatus && matchQuery))
@@ -605,7 +624,7 @@ const animeForClient = allAnime.map((anime) => {
 
         let totalVisible = 0
         sections.forEach((section) => {
-          const sectionCards = Array.from(section.querySelectorAll('[data-anime-card]'))
+          const sectionCards = Array.from(section.querySelectorAll('[data-game-card]'))
           const visibleCount = sectionCards.filter((c) => !c.classList.contains('hidden')).length
           const countEl = section.querySelector('[data-progress-count]')
           if (countEl) countEl.textContent = `(${visibleCount})`
@@ -615,15 +634,15 @@ const animeForClient = allAnime.map((anime) => {
         })
 
         if (emptyState) {
-          emptyState.classList.toggle("hidden", totalVisible !== 0);
+          emptyState.classList.toggle('hidden', totalVisible !== 0)
         }
       }
 
-      function openModal(animeId) {
-        const anime = animeMap.get(String(animeId))
-        if (!anime) return
+      function openModal(gameId) {
+        const game = gameMap.get(String(gameId))
+        if (!game) return
 
-        const modal = document.querySelector('[data-anime-modal]')
+        const modal = document.querySelector('[data-game-modal]')
         if (!modal) return
 
         const setEl = (sel, text, hideIfEmpty = false) => {
@@ -634,38 +653,36 @@ const animeForClient = allAnime.map((anime) => {
           }
         }
 
-        setEl('[data-modal-title]', anime.title || '未知番剧')
+        setEl('[data-modal-title]', game.title || '未知游戏')
 
-        const studioContainer = modal.querySelector("[data-modal-studio]");
-        const studioText = modal.querySelector("[data-modal-studio-text]");
-        if (studioContainer && studioText) {
-          if (anime.studio) {
-            studioText.textContent = anime.studio;
-            studioContainer.classList.remove("hidden");
+        const developerContainer = modal.querySelector('[data-modal-developer]')
+        const developerText = modal.querySelector('[data-modal-developer-text]')
+        if (developerContainer && developerText) {
+          if (game.developer) {
+            developerText.textContent = game.developer
+            developerContainer.classList.remove('hidden')
           } else {
-            studioContainer.classList.add("hidden");
+            developerContainer.classList.add('hidden')
           }
         }
 
-        setEl('[data-modal-progress]', anime.progress || '未知', true)
-        setEl('[data-modal-finished-text]', anime.finished || '')
-        modal.querySelector('[data-modal-finished]')?.classList.toggle('hidden', !anime.finished)
+        setEl('[data-modal-progress]', game.progress || '未知', true)
+        setEl('[data-modal-playtime-text]', game.playtime || '')
+        modal.querySelector('[data-modal-playtime]')?.classList.toggle('hidden', !game.playtime)
 
-        setEl('[data-modal-review]', anime.review || '')
-        modal
-          .querySelector('[data-modal-review-section]')
-          ?.classList.toggle('hidden', !anime.review)
-        setEl('[data-modal-desc]', anime.description || '')
+        setEl('[data-modal-review]', game.review || '')
+        modal.querySelector('[data-modal-review-section]')?.classList.toggle('hidden', !game.review)
+        setEl('[data-modal-desc]', game.description || '')
         modal
           .querySelector('[data-modal-desc-section]')
-          ?.classList.toggle('hidden', !anime.description)
+          ?.classList.toggle('hidden', !game.description)
 
         // 状态徽章渲染
         const statusEl = modal.querySelector('[data-modal-status]')
         if (statusEl) {
-          statusEl.textContent = anime.status || '未评分'
+          statusEl.textContent = game.status || '未评分'
           statusEl.className = 'px-2 py-1 text-xs rounded-md'
-          if (anime.status === '推荐')
+          if (game.status === '推荐')
             statusEl.classList.add(
               'bg-green-100',
               'text-green-700',
@@ -674,7 +691,7 @@ const animeForClient = allAnime.map((anime) => {
               'dark:text-green-400',
               'dark:border-green-800/50'
             )
-          else if (anime.status === '中庸')
+          else if (game.status === '中庸')
             statusEl.classList.add(
               'bg-yellow-100',
               'text-yellow-700',
@@ -683,7 +700,7 @@ const animeForClient = allAnime.map((anime) => {
               'dark:text-yellow-400',
               'dark:border-yellow-800/50'
             )
-          else if (anime.status === '不行')
+          else if (game.status === '不行')
             statusEl.classList.add(
               'bg-red-100',
               'text-red-700',
@@ -692,18 +709,17 @@ const animeForClient = allAnime.map((anime) => {
               'dark:text-red-400',
               'dark:border-red-800/50'
             )
-          else statusEl.classList.add('bg-muted', 'text-muted-foreground') // 未评分样式
+          else statusEl.classList.add('bg-muted', 'text-muted-foreground')
         }
 
         // 标签渲染
         const tagsContainer = modal.querySelector('[data-modal-tags]')
         if (tagsContainer) {
           tagsContainer.innerHTML = ''
-          const tagsArray = anime.tags && anime.tags !== '无标签' ? anime.tags.split(', ') : []
+          const tagsArray = game.tags && game.tags !== '无标签' ? game.tags.split(', ') : []
           tagsArray.forEach((tag) => {
             const span = document.createElement('span')
-            span.className =
-              'px-2 py-0.5 text-xs bg-muted text-muted-foreground rounded-md'
+            span.className = 'px-2 py-0.5 text-xs bg-muted text-muted-foreground rounded-md'
             span.textContent = tag
             tagsContainer.appendChild(span)
           })
@@ -718,48 +734,43 @@ const animeForClient = allAnime.map((anime) => {
         const bgEl = modal.querySelector('[data-modal-bg]')
 
         if (coverEl && fallbackEl && coverTitle) {
-          if (anime.cover) {
-            coverEl.src = anime.cover
+          if (game.cover) {
+            coverEl.src = game.cover
             coverEl.classList.remove('hidden')
             fallbackEl.classList.add('hidden')
 
             if (bgWrap && bgEl) {
-              bgEl.src = anime.cover
+              bgEl.src = game.cover
               bgWrap.classList.remove('hidden')
             }
           } else {
             coverEl.removeAttribute('src')
             coverEl.classList.add('hidden')
-            coverTitle.textContent = anime.title || ''
+            coverTitle.textContent = game.title || ''
             fallbackEl.classList.remove('hidden')
 
             if (bgWrap) bgWrap.classList.add('hidden')
           }
         }
 
-        // 外链按钮渲染 (替换为 Bangumi 等二次元相关外链)
+        // 外链按钮渲染 (替换为 Steam)
         const linksContainer = modal.querySelector('[data-modal-links]')
         if (linksContainer) {
           linksContainer.innerHTML = ''
           const platforms = [
             {
-              id: 'bangumi',
-              name: 'Bangumi 番组计划',
+              id: 'steam',
+              name: 'Steam',
               classes:
-                'bg-[#FFEAED] text-[#F09199] hover:bg-[#FDD1D8] dark:bg-[#E9546B]/30 dark:text-[#FFB3BE]'
-            },
-            {
-              id: 'bilibili',
-              name: 'Bilibili 哔哩哔哩',
-              classes: 'bg-[#E5F6FD] text-[#00A1D6] hover:bg-[#D0EEFA] dark:bg-[#00A1D6]/20 dark:text-[#4ABDE8] border border-[#00A1D6]/20'
+                'bg-[#E3F2FD] text-[#1565C0] hover:bg-[#BBDEFB] dark:bg-[#1b2838] dark:text-[#66c0f4] border border-[#1565C0]/20 dark:border-[#66c0f4]/20'
             }
           ]
-          const animeLinks = anime.links || {}
+          const gameLinks = game.links || {}
 
           platforms.forEach((platform) => {
-            if (animeLinks[platform.id]) {
+            if (gameLinks[platform.id]) {
               const btn = document.createElement('a')
-              btn.href = animeLinks[platform.id]
+              btn.href = gameLinks[platform.id]
               btn.target = '_blank'
               btn.rel = 'noopener noreferrer'
               btn.className = `inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-md transition-colors ${platform.classes}`
@@ -778,18 +789,18 @@ const animeForClient = allAnime.map((anime) => {
         modal.classList.remove('hidden')
         modal.classList.add('flex')
         requestAnimationFrame(() => {
-          modal.querySelector('[data-anime-backdrop]')?.classList.add('opacity-100')
-          modal.querySelector('[data-anime-panel]')?.classList.add('opacity-100', 'scale-100')
+          modal.querySelector('[data-game-backdrop]')?.classList.add('opacity-100')
+          modal.querySelector('[data-game-panel]')?.classList.add('opacity-100', 'scale-100')
         })
         modal.setAttribute('aria-hidden', 'false')
         document.body.classList.add('overflow-hidden')
       }
 
       function closeModal() {
-        const modal = document.querySelector('[data-anime-modal]')
+        const modal = document.querySelector('[data-game-modal]')
         if (!modal) return
-        modal.querySelector('[data-anime-backdrop]')?.classList.remove('opacity-100')
-        modal.querySelector('[data-anime-panel]')?.classList.remove('opacity-100', 'scale-100')
+        modal.querySelector('[data-game-backdrop]')?.classList.remove('opacity-100')
+        modal.querySelector('[data-game-panel]')?.classList.remove('opacity-100', 'scale-100')
         modal.setAttribute('aria-hidden', 'true')
         document.body.classList.remove('overflow-hidden')
         setTimeout(() => {
@@ -824,21 +835,21 @@ const animeForClient = allAnime.map((anime) => {
           return
         }
 
-        const card = e.target.closest('[data-anime-card]')
+        const card = e.target.closest('[data-game-card]')
         if (card) {
-          const id = card.getAttribute('data-anime-id')
+          const id = card.getAttribute('data-game-id')
           openModal(id)
           return
         }
 
-        if (e.target.closest('[data-anime-close]') || e.target.closest('[data-anime-backdrop]')) {
+        if (e.target.closest('[data-game-close]') || e.target.closest('[data-game-backdrop]')) {
           closeModal()
           return
         }
       })
 
       document.addEventListener('input', (e) => {
-        if (e.target.hasAttribute('data-anime-search')) {
+        if (e.target.hasAttribute('data-game-search')) {
           state.query = e.target.value
           applyFilters()
         }
@@ -850,13 +861,71 @@ const animeForClient = allAnime.map((anime) => {
 
       document.addEventListener('astro:page-load', () => {
         initDOM()
-        if (document.querySelector('[data-anime-search]')) {
+        if (document.querySelector('[data-game-search]')) {
           updateFilterUI()
           applyFilters()
         }
       })
 
       initDOM()
+
+      function initTagsToggle() {
+        const container = document.querySelector('[data-tags-container]')
+        const toggleBtn = document.querySelector('[data-tags-toggle]')
+        const toggleText = document.querySelector('[data-tags-toggle-text]')
+        const toggleIcon = document.querySelector('[data-tags-toggle-icon]')
+
+        if (!container || !toggleBtn) return
+
+        const COLLAPSED_HEIGHT = 96
+
+        function checkOverflow() {
+          const currentHeight = container.style.maxHeight
+          container.style.maxHeight = 'none'
+          const realHeight = container.scrollHeight
+
+          if (realHeight > COLLAPSED_HEIGHT + 10) {
+            toggleBtn.classList.remove('hidden')
+            if (toggleText.textContent === '展开全部') {
+              container.style.maxHeight = `${COLLAPSED_HEIGHT}px`
+              container.style.maskImage = 'linear-gradient(to bottom, black 70%, transparent 100%)'
+              container.style.webkitMaskImage = 'linear-gradient(to bottom, black 70%, transparent 100%)'
+            } else {
+              container.style.maxHeight = `${realHeight}px`
+              container.style.maskImage = 'none'
+              container.style.webkitMaskImage = 'none'
+            }
+          } else {
+            toggleBtn.classList.add('hidden')
+            container.style.maxHeight = 'none'
+            container.style.maskImage = 'none'
+            container.style.webkitMaskImage = 'none'
+          }
+        }
+
+        if (!toggleBtn.dataset.initialized) {
+          toggleBtn.addEventListener('click', () => {
+            const isCollapsed = toggleText.textContent === '展开全部'
+            if (isCollapsed) {
+              container.style.maxHeight = `${container.scrollHeight}px`
+              toggleText.textContent = '收起'
+              toggleIcon.style.transform = 'rotate(180deg)'
+              container.style.maskImage = 'none'
+              container.style.webkitMaskImage = 'none'
+            } else {
+              container.style.maxHeight = `${COLLAPSED_HEIGHT}px`
+              toggleText.textContent = '展开全部'
+              toggleIcon.style.transform = 'rotate(0deg)'
+              container.style.maskImage = 'linear-gradient(to bottom, black 70%, transparent 100%)'
+              container.style.webkitMaskImage = 'linear-gradient(to bottom, black 70%, transparent 100%)'
+            }
+          })
+          toggleBtn.dataset.initialized = "true"
+        }
+
+        window.addEventListener('resize', checkOverflow)
+        checkOverflow()
+      }
     })()
   </script>
 </CommonPage>
