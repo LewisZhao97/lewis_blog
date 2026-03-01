@@ -45,13 +45,14 @@ const allAnime = (animeData as AnimeRecord[]).map(anime => {
 const progressMap: Record<string, string> = {
   '1': '想看',
   '2': '在看',
-  '3': '看过'
+  '3': '看过',
+  '4': '搁置'
 }
 
 const allTags = Array.from(new Set(allAnime.flatMap((a) => a.fields.标签 || []))).sort()
 const tagsList = ['全部', ...allTags]
 
-const progressStatuses = ['全部', '看过', '在看', '想看']
+const progressStatuses = ['全部', '看过', '在看', '想看', '搁置']
 const recommendStatuses = ['全部', '推荐', '中庸', '不行', '未评分']
 
 // 按观看进度将番剧分组 (作为页面的大版块)
@@ -62,7 +63,7 @@ const animeByProgress = allAnime.reduce<Record<string, AnimeRecord[]>>(
     acc[prog].push(anime)
     return acc
   },
-  { 看过: [], 在看: [], 想看: [] }
+  { 看过: [], 在看: [], 想看: [], 搁置: [] }
 )
 
 const stats = {

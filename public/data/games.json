@@ -795,6 +795,21 @@
     }
   },
   {
+    "id": "steam_2129530",
+    "fields": {
+      "游戏名": "REANIMAL",
+      "封面": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/2129530/library_600x900_2x.jpg",
+      "游玩时长": "6.6 小时",
+      "短评": "暂无",
+      "简介": "暂无",
+      "游玩进度": "在玩",
+      "标签": [],
+      "链接": {
+        "steam": "https://store.steampowered.com/app/2129530/"
+      }
+    }
+  },
+  {
     "id": "steam_977950",
     "fields": {
       "游戏名": "A Dance of Fire and Ice",
