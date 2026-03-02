@@ -40,6 +40,8 @@ const allAnime = (animeData as AnimeRecord[]).map(anime => {
   }
 
   return anime
+}).sort((a, b) => {
+  return a.id.localeCompare(b.id, undefined, { numeric: true, sensitivity: 'base' });
 })
 
 const progressMap: Record<string, string> = {
