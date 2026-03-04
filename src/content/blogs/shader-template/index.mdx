@@ -1,0 +1,134 @@
+---
+title: 为你的Unity项目添加自定义shader模板
+publishDate: 2026-02-22
+description: 本文介绍了如何为你的Unity编辑器create上下文菜单中扩展更多的shader模板。
+heroImage:
+  src: https://cloudflare-imgbed-2dl.pages.dev/file/posts/1772638878227_image.png
+  inferSize: true
+  color: "#A18594"
+tags:
+  - Unity
+  - Shader
+  - Template
+language: zh
+heroImageLink: https://www.pixiv.net/artworks/95683451
+---
+import { Aside, Tabs, TabItem, MdxRepl } from 'src/components/user/'
+
+我们都知道，Unity编辑器的create上下文菜单中关于创建shader的选项只有几个，直到现如今的Unity6.3，Unlit Shader的模板内容仍然未从CG语言转为更现代的HLSL语言，导致我们每次编写自定义shader时，都需要将模板清空，重新来过。
+
+## 创建新的自定义shader
+
+```shaderlab
+Shader "Lewis/URPTemplates/MyShaderTemplateShader" {
+	Properties {
+		_BaseMap ("Example Texture", 2D) = "white" {}
+		_BaseColor ("Example Colour", Color) = (0, 0.66, 0.73, 1)
+		[Toggle(_ALPHATEST_ON)] _AlphaTestToggle ("Alpha Clipping", Float) = 0
+		_Cutoff ("Alpha Cutoff", Float) = 0.5
+
+		[HideInInspector] _Cull("__cull", Float) = 2.0
+	}
+	SubShader {
+		Tags {
+			"RenderPipeline"="UniversalPipeline"
+			"RenderType"="Opaque"
+			"Queue"="Geometry"
+			"UniversalMaterialType" = "Lit" "IgnoreProjector" = "True"
+		}
+
+		HLSLINCLUDE
+		#include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
+
+		CBUFFER_START(UnityPerMaterial)
+		float4 _BaseMap_ST;
+		float4 _BaseColor;
+		float _Cutoff;
+		CBUFFER_END
+		ENDHLSL
+
+		Pass {
+			Name "Unlit"
+			//Tags { "LightMode"="SRPDefaultUnlit" } // (is default anyway)
+
+			HLSLPROGRAM
+			#pragma vertex UnlitPassVertex
+			#pragma fragment UnlitPassFragment
+
+			// Material Keywords
+			#pragma shader_feature _ALPHATEST_ON
+
+			// Structs
+			struct Attributes {
+				float4 positionOS	: POSITION;
+				float2 uv		    : TEXCOORD0;
+				float4 color		: COLOR;
+			};
+
+			struct Varyings {
+				float4 positionCS 	: SV_POSITION;
+				float2 uv		    : TEXCOORD0;
+				float4 color		: COLOR;
+			};
+
+			// Textures, Samplers & Global Properties
+			TEXTURE2D(_BaseMap);
+			SAMPLER(sampler_BaseMap);
+
+			// Vertex Shader
+			Varyings UnlitPassVertex(Attributes IN) {
+				Varyings OUT;
+
+				VertexPositionInputs positionInputs = GetVertexPositionInputs(IN.positionOS.xyz);
+				OUT.positionCS = positionInputs.positionCS;
+				// Or :
+				//OUT.positionCS = TransformObjectToHClip(IN.positionOS.xyz);
+				OUT.uv = TRANSFORM_TEX(IN.uv, _BaseMap);
+				OUT.color = IN.color;
+				return OUT;
+			}
+
+			// Fragment Shader
+			half4 UnlitPassFragment(Varyings IN) : SV_Target {
+				half4 baseMap = SAMPLE_TEXTURE2D(_BaseMap, sampler_BaseMap, IN.uv);
+
+				#ifdef _ALPHATEST_ON
+					// Alpha Clipping
+					clip(baseMap.a - _Cutoff);
+				#endif
+
+				return baseMap * _BaseColor * IN.color;
+			}
+			ENDHLSL
+		}
+```
+将`.shader`文件后缀添加`.txt`后缀，最终样式应该是`MyShaderTemplate.shader.txt`，并将其放入资产文件中。
+## 创建Create上下文菜单
+
+```csharp
+using UnityEditor;
+
+namespace Unitytools.Editor
+{
+    internal static class ShaderTemplatesMenu
+    {
+        private const string k_MyShaderTemplateShader =
+            "Assets/Editor/MyShaderTemplate.shader.txt";
+
+        [MenuItem("Assets/Create/Shader/My Shader Template Shader", false)]
+        public static void CreateUrpTemplateShader()
+        {
+            ProjectWindowUtil.CreateScriptAssetFromTemplateFile(
+                k_MyShaderTemplateShader,
+                "My Shader Template Shader.shader"
+            );
+        }
+    }
+}
+```
+
+至此，你的上下文菜单中Shader一栏就会多出一个`My Shader Template Shader`模板，点击即可创建出你自定义好的shader模板。
+
+<Aside type='note'>
+**你可以随时修改shader模板直至满足你的需求，并将其粘贴至`.txt`shader模板文件中。**
+</Aside>
