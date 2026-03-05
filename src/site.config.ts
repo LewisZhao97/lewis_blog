@@ -45,7 +45,6 @@ export const theme: ThemeUserConfig = {
     menu: [
       { title: 'Blog', link: '/blog' },
       { title: 'Archives', link: '/archives' },
-      // { title: 'Academic', link: '/academic' },
       { title: 'Projects', link: '/projects' },
       { title: 'Library', link: '/library' },
       { title: 'Links', link: '/links' },
@@ -93,7 +92,7 @@ export const theme: ThemeUserConfig = {
       main: 'theme.axi404.top',
       // githubPages: '',
       // cloudflare: '',
-      friendCircle: 'cworld-fc.netlify.app/',
+      // friendCircle: 'cworld-fc.netlify.app/',
     }
   }
 }
@@ -143,7 +142,13 @@ export const integ: IntegrationUserConfig = {
     // Server service link
     server: 'https://waline.example.com/',
     // Refer https://waline.js.org/en/guide/features/emoji.html
-    emoji: ['bmoji', 'weibo'],
+    emoji: [
+      'bmoji',
+      'bilibili',
+      'weibo',
+      'tieba',
+      'alus'
+    ],
     // Refer https://waline.js.org/en/reference/client/props.html
     additionalConfigs: {
       // search: false,

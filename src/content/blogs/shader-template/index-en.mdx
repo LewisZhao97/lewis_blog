@@ -1,0 +1,134 @@
+---
+title: Add custom shader templates to your Unity project
+publishDate: 2026-02-22
+description: This article explains how to create additional shader templates within the context menu for your Unity Editor.
+heroImage:
+  src: https://cloudflare-imgbed-2dl.pages.dev/file/posts/1772638878227_image.png
+  inferSize: true
+  color: "#A18594"
+tags:
+  - Unity
+  - Shader
+  - Template
+language: en
+heroImageLink: https://www.pixiv.net/artworks/95683451
+---
+import { Aside, Tabs, TabItem, MdxRepl } from 'src/components/user/'
+
+We all know that the Unity Editor's context menu for creating shaders has only a few options. Even in the current Unity 6.3, the template content for Unlit Shaders still hasn't been converted from CG language to the more modern HLSL language. This means that every time we write a custom shader, we have to clear the template and start over from scratch.
+
+## Create a new custom shader
+
+```shaderlab
+Shader "Lewis/URPTemplates/MyShaderTemplateShader" {
+	Properties {
+		_BaseMap ("Example Texture", 2D) = "white" {}
+		_BaseColor ("Example Colour", Color) = (0, 0.66, 0.73, 1)
+		[Toggle(_ALPHATEST_ON)] _AlphaTestToggle ("Alpha Clipping", Float) = 0
+		_Cutoff ("Alpha Cutoff", Float) = 0.5
+
+		[HideInInspector] _Cull("__cull", Float) = 2.0
+	}
+	SubShader {
+		Tags {
+			"RenderPipeline"="UniversalPipeline"
+			"RenderType"="Opaque"
+			"Queue"="Geometry"
+			"UniversalMaterialType" = "Lit" "IgnoreProjector" = "True"
+		}
+
+		HLSLINCLUDE
+		#include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
+
+		CBUFFER_START(UnityPerMaterial)
+		float4 _BaseMap_ST;
+		float4 _BaseColor;
+		float _Cutoff;
+		CBUFFER_END
+		ENDHLSL
+
+		Pass {
+			Name "Unlit"
+			//Tags { "LightMode"="SRPDefaultUnlit" } // (is default anyway)
+
+			HLSLPROGRAM
+			#pragma vertex UnlitPassVertex
+			#pragma fragment UnlitPassFragment
+
+			// Material Keywords
+			#pragma shader_feature _ALPHATEST_ON
+
+			// Structs
+			struct Attributes {
+				float4 positionOS	: POSITION;
+				float2 uv		    : TEXCOORD0;
+				float4 color		: COLOR;
+			};
+
+			struct Varyings {
+				float4 positionCS 	: SV_POSITION;
+				float2 uv		    : TEXCOORD0;
+				float4 color		: COLOR;
+			};
+
+			// Textures, Samplers & Global Properties
+			TEXTURE2D(_BaseMap);
+			SAMPLER(sampler_BaseMap);
+
+			// Vertex Shader
+			Varyings UnlitPassVertex(Attributes IN) {
+				Varyings OUT;
+
+				VertexPositionInputs positionInputs = GetVertexPositionInputs(IN.positionOS.xyz);
+				OUT.positionCS = positionInputs.positionCS;
+				// Or :
+				//OUT.positionCS = TransformObjectToHClip(IN.positionOS.xyz);
+				OUT.uv = TRANSFORM_TEX(IN.uv, _BaseMap);
+				OUT.color = IN.color;
+				return OUT;
+			}
+
+			// Fragment Shader
+			half4 UnlitPassFragment(Varyings IN) : SV_Target {
+				half4 baseMap = SAMPLE_TEXTURE2D(_BaseMap, sampler_BaseMap, IN.uv);
+
+				#ifdef _ALPHATEST_ON
+					// Alpha Clipping
+					clip(baseMap.a - _Cutoff);
+				#endif
+
+				return baseMap * _BaseColor * IN.color;
+			}
+			ENDHLSL
+		}
+```
+
+Add the `.txt` extension to the `.shader` file, resulting in the final filename `MyShaderTemplate.shader.txt`. Place it in the assets folder.## 创建Create上下文菜单
+
+```csharp
+using UnityEditor;
+
+namespace Unitytools.Editor
+{
+    internal static class ShaderTemplatesMenu
+    {
+        private const string k_MyShaderTemplateShader =
+            "Assets/Editor/MyShaderTemplate.shader.txt";
+
+        [MenuItem("Assets/Create/Shader/My Shader Template Shader", false)]
+        public static void CreateUrpTemplateShader()
+        {
+            ProjectWindowUtil.CreateScriptAssetFromTemplateFile(
+                k_MyShaderTemplateShader,
+                "My Shader Template Shader.shader"
+            );
+        }
+    }
+}
+```
+
+At this point, a new `My Shader Template Shader` template will appear in the Shader section of your context menu. Click it to create your custom shader template.
+
+<Aside type='note'>
+  **You can modify the shader template at any time until it meets your requirements, then paste it into the `.txt` shader template file.**
+</Aside>

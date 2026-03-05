@@ -14,7 +14,7 @@ import Quote from '@/components/advanced/Quote.astro'
 import ProjectCard from '@/components/home/ProjectCard.astro'
 
 
-const languages = ['C++','C#', 'Shaderlab', 'HLSL', 'GLSL']
+const languages = ['C++','C#', 'Shaderlab', 'HLSL', 'GLSL', 'JavaScript']
 const frontend = ['TypeScript', 'Astro']
 const backend = ['Vercel', 'Waline']
 const middleware = ['Unity', 'Unreal Engine']
@@ -193,7 +193,7 @@ const allPostsByDate = sortMDByDate(enPosts).slice(0, MAX_POSTS)
         </Card>
       </Section>
 
-      <Section title='Website List'>
+      <!--<Section title='Website List'>
         <div class='grid grid-cols-1 gap-3 sm:grid-cols-2'>
           <ProjectCard
             href='https://www.youtube.com/watch?v=dQw4w9WgXcQ'
@@ -220,7 +220,7 @@ const allPostsByDate = sortMDByDate(enPosts).slice(0, MAX_POSTS)
             imagePath='/src/assets/projects/byddl.webp'
           />
         </div>
-      </Section>
+      </Section>-->
 
       <Section title='Skills'>
         <SkillLayout title='Languages' skills={languages} />
