@@ -14,6 +14,7 @@
     "sync": "astro sync",
     "check": "astro check",
     "astro": "astro",
+    "new": "node src/scripts/index.js new",
     "format": "prettier --write '**/*.{js,jsx,ts,tsx,md,mdx,astro}'",
     "lint": "eslint --fix 'src/**/*.{js,ts,jsx,tsx,astro}'",
     "lint:check": "eslint 'src/**/*.{js,ts,jsx,tsx,astro}'",

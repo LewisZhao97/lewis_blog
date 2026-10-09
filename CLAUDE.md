@@ -19,6 +19,7 @@ pnpm check          # 仅类型检查（astro check）
 pnpm lint           # eslint --fix src/
 pnpm format         # prettier 全量格式化
 pnpm sync           # astro sync，修改 content.config.ts 后重新生成类型
+pnpm new -s <slug> "标题"   # 新建文章，见下方「内容集合」
 ```
 
 `pnpm clean` 使用 `rm -rf`，在 Windows 上需要在 Git Bash 中运行。
@@ -41,7 +42,7 @@ pnpm sync           # astro sync，修改 content.config.ts 后重新生成类�
 - 每篇文章一个目录：`src/content/blogs/<slug>/index.mdx`（中文）+ `index-en.mdx`（英文，可选）。目录名即 URL slug。
 - frontmatter 必填：`title`（≤60 字符）、`description`（≤300 字符）、`publishDate`。tags 会被去重并转小写。`draft: true` 仅在生产构建中被过滤。
 - `getBlogCollectionEn()`（`src/utils/server.ts`）：若某篇没有 `index-en`，英文站点回退显示中文版本。
-- `src/scripts/new.mjs` 生成的是扁平的 `blogs/<slug>.md`，与上述 glob 不匹配，**不要用它建文章**，手动建目录。
+- 新建文章：`pnpm new -s <slug> "标题"` 生成 `blogs/<slug>/index.mdx`；加 `-l en` 在同目录生成 `index-en.mdx`，`-d` 为草稿。`slugify` 会丢弃中文，中文标题务必用 `-s` 指定目录名。
 - 文章内容通常在 Obsidian 中编辑（`.obsidian/` 带 edit-mdx 插件）。
 
 ### 国际化

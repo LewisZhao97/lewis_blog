@@ -1,18 +1,19 @@
 ;
 /**
- * Create a new post in the content directory
+ * Create a new post in the content directory: src/content/blogs/<slug>/index.mdx
  *
- * Usage: astro-axi new [options] <post-title>
+ * Usage: node src/scripts/index.js new [options] <post-title>
  *
  * Options:
- *   -l, --lang <en|zh>   Set the language (default: en)
+ *   -s, --slug <slug>    Directory name / URL slug (default: slugified title)
+ *   -l, --lang <zh|en>   Set the language, en creates index-en.mdx (default: zh)
  *   -d, --draft          Create a draft post (default: false)
- *   -m, --mdx            Use MDX format (default: false)
  *   -h, --help           Show this help message
  *
  * Example:
- *   astro-axi new "Hello World"
- *   astro-axi new -l zh "你好，世界"
+ *   node src/scripts/index.js new "Hello World"
+ *   node src/scripts/index.js new -s hello-world "你好，世界"
+ *   node src/scripts/index.js new -l en -s hello-world "Hello World"
  */
 
 import fs from 'node:fs';
@@ -44,33 +45,34 @@ function getPostSlug(postTitle) {
   return slug
 }
 
-const HELP_INFO = `Usage: astro-lewis new [options] <post-title>
+const HELP_INFO = `Usage: node src/scripts/index.js new [options] <post-title>
 
 Options:
-  -l, --lang           Set the language (default: null)
+  -s, --slug <slug>    Directory name / URL slug (default: slugified title)
+  -l, --lang <zh|en>   Set the language, en creates index-en.mdx (default: zh)
   -d, --draft          Create a draft post (default: false)
-  -m, --mdx            Use MDX format (default: false)
   -h, --help           Show this help message
 
 Example:
-  astro-axi new "Hello World"
-  astro-axi new -l zh "你好，世界"
+  node src/scripts/index.js new "Hello World"
+  node src/scripts/index.js new -s hello-world "你好，世界"
+  node src/scripts/index.js new -l en -s hello-world "Hello World"
 `
 const TARGET_DIR = 'src/content/blogs/'
+const LANGS = ['zh', 'en']
 
 export default function main(args) {
   const parsedArgs = minimist(args, {
-    string: ['lang'],
-    boolean: ['draft', 'mdx', 'help'],
+    string: ['lang', 'slug'],
+    boolean: ['draft', 'help'],
     default: {
-      lang: null,
-      draft: false,
-      mdx: false
+      lang: 'zh',
+      draft: false
     },
     alias: {
+      s: 'slug',
       l: 'lang',
       d: 'draft',
-      m: 'mdx',
       h: 'help'
     }
   })
@@ -80,15 +82,27 @@ export default function main(args) {
     process.exit(0)
   }
 
+  if (!LANGS.includes(parsedArgs.lang)) {
+    console.error(`ERROR: Unsupported language "${parsedArgs.lang}", expected one of: ${LANGS.join(', ')}`)
+    process.exit(1)
+  }
+
   let postTitle = parsedArgs._.join(' ') // join the rest of the arguments
   if (!postTitle || postTitle.trim() === '') {
     postTitle = 'Untitled'
   }
   console.log('Creating new post:', postTitle)
 
-  const fileExtension = parsedArgs.mdx ? '.mdx' : '.md'
-  const fileName = getPostSlug(postTitle) + fileExtension
-  const fullPath = path.join(TARGET_DIR, fileName)
+  // slugify drops non-ASCII characters, so Chinese titles need an explicit --slug
+  const slug = getPostSlug(parsedArgs.slug || postTitle)
+  if (!parsedArgs.slug && slug === 'untitled') {
+    console.warn('WARN: Title has no ASCII characters, use --slug to set the directory name')
+  }
+
+  // Chinese version is index.mdx, English version is index-en.mdx in the same directory
+  const postDir = path.join(TARGET_DIR, slug)
+  const fileName = parsedArgs.lang === 'en' ? 'index-en.mdx' : 'index.mdx'
+  const fullPath = path.join(postDir, fileName)
 
   console.log('Full path:', fullPath)
 
@@ -98,18 +112,19 @@ export default function main(args) {
   }
 
   let content = `---
-title: ${postTitle}
+title: ${JSON.stringify(postTitle)}
 description: 'Write your description here.'
 publishDate: ${getDate()}
 `
   content += parsedArgs.draft ? 'draft: true\n' : ''
-  content += parsedArgs.lang ? `lang: ${parsedArgs.lang}\n` : ''
+  content += `language: ${parsedArgs.lang}\n`
   content += `tags: ['tag1', 'tag2']
 ---
 
 Write your content here.
 `
 
+  fs.mkdirSync(postDir, { recursive: true })
   fs.writeFileSync(fullPath, content)
   console.log(`Post "${postTitle}" created at ${fullPath}`)
 }
