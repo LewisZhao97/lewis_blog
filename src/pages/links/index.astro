@@ -14,8 +14,8 @@ const linksConf = links || { logbook: [], applyTip: [] }
 const headings = [
   { depth: 2, slug: 'common-links', text: 'Common Links' },
   { depth: 2, slug: 'special-links', text: 'Special Links' },
-  { depth: 2, slug: 'small-circle', text: 'Small Circle' },
   { depth: 2, slug: 'apply-links', text: 'Apply Links' },
+  // 朋友圈区块在 Apply Links 之后，且仅在配置了 friendCircle 时渲染
   ...(config.personal?.domains?.friendCircle ? [{ depth: 2, slug: 'small-circle', text: 'Small Circle' }] : [])
 ]
 
@@ -41,6 +41,21 @@ const { friends } = friendsData
       
       <div class='bg-gradient-to-br from-background to-muted/30 rounded-2xl p-6 border border-border/30'>
         <FriendList list={friends[0]} />
+      </div>
+    </section>
+
+    <!-- Special Links 区域 -->
+    <section class='space-y-6'>
+      <div class='flex items-center gap-3 pb-3 border-b border-border/30'>
+        <div class='flex items-center justify-center w-10 h-10 rounded-xl bg-amber-500/10 text-amber-600 dark:text-amber-400'>
+          <svg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'>
+            <polygon points='12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2'></polygon>
+          </svg>
+        </div>
+        <div>
+          <h2 id='special-links' class='text-2xl font-semibold m-0'>Special Links</h2>
+          <p class='text-sm text-muted-foreground m-0'>特别推荐<span class='mx-2 align-middle'>·</span>值得一看的站点与资源</p>
+        </div>
       </div>
     </section>
 

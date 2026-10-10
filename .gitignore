@@ -85,3 +85,6 @@ fetch-steam.js
 fetch-bangumi.js
 sync-overrides.js
 fetch-tmdb.js
+
+# Claude Code local launch config
+.claude/launch.json

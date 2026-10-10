@@ -18,18 +18,29 @@ type Props = {
 
 const { stats } = Astro.props as Props
 
+// Bilibili now serves the Substats proxy an HTML anti-bot page, so query its API directly
+async function fetchBilibili(vmid: string): Promise<number> {
+  const response = await fetch(`https://api.bilibili.com/x/relation/stat?vmid=${vmid}`)
+  const data = await response.json()
+  if (data.code !== 0) throw new Error(data.message)
+  return data.data.follower
+}
+
+async function fetchSubstats(api: string): Promise<number> {
+  const response = await fetch(`https://api.swo.moe/stats/${api}`)
+  const data = await response.json()
+  if (data.failed) throw new Error(data.message)
+  return data.count
+}
+
+// On failure, `item.count` keeps whatever fallback value was passed in
 async function fetchCount(item: SubstatsItem) {
   if (!item.api) return
   try {
-    const response = await fetch(`https://api.swo.moe/stats/${item.api}`)
-    const data = await response.json()
-    if (data.failed) {
-      throw new Error(data.message)
-    } else {
-      item.count = data.count
-    }
+    const [source, key] = item.api.split('/')
+    item.count = source === 'bilibili' ? await fetchBilibili(key) : await fetchSubstats(item.api)
   } catch (error) {
-    console.error('Error in Substatus fetching: ' + error)
+    console.error(`Error in Substats fetching (${item.api}): ${error}`)
   }
 }
 

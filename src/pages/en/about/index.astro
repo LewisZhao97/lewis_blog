@@ -97,12 +97,6 @@ const distributions = [
         icon: import('@/assets/tools/clion.svg?raw')
       },
       {
-        name: 'Antigravity',
-        description: 'AI-powered Code Editor',
-        href: 'https://antigravity.google',
-        icon: import('@/assets/tools/antigravity.svg?raw')
-      },
-      {
         name: 'VS Code',
         description: 'Code Editor',
         href: 'https://code.visualstudio.com/',
@@ -121,22 +115,22 @@ const distributions = [
     title='Vide Coding'
     tools={[
       {
-        name: 'Google Gemini Pro 3',
+        name: 'Claude Code',
+        description: 'Vibe Coding',
+        href: 'https://claude.com/claude-code',
+        icon: import('@/assets/tools/claude.svg?raw')
+      },
+      {
+        name: 'Google Gemini',
         description: 'Vibe Coding',
         href: 'https://gemini.google.com/',
         icon: import('@/assets/tools/gemini.svg?raw')
       },
       {
-        name: 'OpenAI ChatGPT 5.2',
+        name: 'OpenAI ChatGPT',
         description: 'Vibe Coding',
         href: 'https://chatgpt.com/',
         icon: import('@/assets/tools/chatgpt.svg?raw')
-      },
-      {
-        name: 'Claude',
-        description: 'Vibe Coding',
-        href: 'https://claude.ai/',
-        icon: import('@/assets/tools/claude.svg?raw')
       },
     ]}
   />
@@ -237,8 +231,8 @@ const distributions = [
         icon: 'github',
         link: 'https://github.com/LewisZhao97',
         text: 'followers',
-        // api: 'github/
-        count: 1,
+        api: 'github/LewisZhao97',
+        count: 1 // fallback
       },
       {
         platform: 'Bilibili',
@@ -246,7 +240,8 @@ const distributions = [
         color: '#fe7398',
         link: 'https://space.bilibili.com/108877865',
         text: 'fans',
-        api: 'bilibili/108877865'
+        api: 'bilibili/108877865',
+        count: 83 // fallback when the API is unreachable at build time
       },
       {
         platform: 'Steam',
@@ -254,7 +249,8 @@ const distributions = [
         color: '#538bc7',
         link: 'https://steamcommunity.com/id/lewisphoto/',
         text: 'games',
-        api: 'steamgames/76561198192282607'
+        api: 'steamgames/76561198192282607',
+        count: 146 // fallback
       },
       {
         platform: 'Steam',
@@ -262,7 +258,8 @@ const distributions = [
         color: '#538bc7',
         link: 'https://steamcommunity.com/id/lewisphoto/',
         text: 'friends',
-        api: 'steamfriends/76561198192282607'
+        api: 'steamfriends/76561198192282607',
+        count: 50 // fallback
       },
       {
         platform: 'X',
@@ -278,7 +275,7 @@ const distributions = [
         color: '#aa53c7',
         link: 'https://www.instagram.com/peiyan.zhao/',
         text: 'followers',
-        // api: 'twitter/peiyan.zhao',
+        // api: 'instagram/peiyan.zhao', // Substats: redirects to login, always fails
         count: 32,
       },
       {
